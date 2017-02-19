@@ -38,19 +38,22 @@ impl<'a> Platform<'a> {
         }
     }
 
-    pub fn draw_hexagon(&mut self, x: usize, y: usize) {
+    pub fn draw_hexagon(&mut self, x: i32, y: i32) {
         self.renderer.set_draw_color(Color::RGB(66, 66, 66));
-        self.renderer
-            .draw_lines(&[Point::new(15, 1).scale(10),
-                          Point::new(5, 1).scale(10),
-                          Point::new(0, 10).scale(10),
-                          Point::new(5, 19).scale(10),
-                          Point::new(15, 19).scale(10),
-                          Point::new(20, 10).scale(10),
-                          Point::new(15, 1).scale(10)])
-            .unwrap();
+        let mut points = &mut [Point::new(5, -9),
+                               Point::new(-5, -9),
+                               Point::new(-10, 0),
+                               Point::new(-5, 9),
+                               Point::new(5, 9),
+                               Point::new(10, 0),
+                               Point::new(5, -9)];
 
+        // points = points.iter().map(|point| point.scale(10).offset(x, y)).collect();
+        for point in points.iter_mut() {
+            *point = point.scale(10).offset(x, y);
+        }
 
+        self.renderer.draw_lines(points).unwrap();
 
         self.renderer.present();
     }

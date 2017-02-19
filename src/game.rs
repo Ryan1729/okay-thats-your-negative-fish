@@ -5,7 +5,9 @@ use platform::Platform;
 pub fn go() {
     let mut platform = Platform::new();
 
-    platform.draw_hexagon(10, 10);
+    for i in 0..500 {
+        platform.draw_hexagon(i, i);
+    }
 
     'running: loop {
         let should_quit = platform.quit_on_keypress();
