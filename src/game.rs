@@ -5,8 +5,8 @@ use platform::Platform;
 pub fn go() {
     let mut platform = Platform::new();
 
-    for i in 0..500 {
-        platform.draw_hexagon(i, i);
+    for i in 0..513 {
+        platform.draw_coloured_hexagon(i, i, 0xFF000000u32 + i as u32);
     }
 
     'running: loop {
@@ -16,6 +16,7 @@ pub fn go() {
             break 'running;
         }
 
+        platform.flip_frame();
         // The rest of the game loop goes here...
     }
 }

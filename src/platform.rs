@@ -6,6 +6,7 @@ use sdl2::keyboard::Keycode;
 use sdl2::rect::Point;
 use sdl2::render::Renderer;
 use sdl2::EventPump;
+use sdl2::gfx::primitives::DrawRenderer;
 
 pub struct Platform<'a> {
     renderer: Renderer<'a>,
@@ -38,6 +39,10 @@ impl<'a> Platform<'a> {
         }
     }
 
+    pub fn flip_frame(&mut self) {
+        self.renderer.present();
+    }
+
     pub fn draw_hexagon(&mut self, x: i32, y: i32) {
         self.renderer.set_draw_color(Color::RGB(66, 66, 66));
         let mut points = &mut [Point::new(5, -9),
@@ -48,12 +53,26 @@ impl<'a> Platform<'a> {
                                Point::new(10, 0),
                                Point::new(5, -9)];
 
-        // points = points.iter().map(|point| point.scale(10).offset(x, y)).collect();
         for point in points.iter_mut() {
             *point = point.scale(10).offset(x, y);
         }
 
         self.renderer.draw_lines(points).unwrap();
+
+        self.renderer.present();
+    }
+
+    pub fn draw_coloured_hexagon(&mut self, x: i16, y: i16, colour: u32) {
+        let mut xs = &mut [5, -5, -10, -5, 5, 10, 5];
+        let mut ys = &mut [-9, -9, 0, 9, 9, 0, -9];
+
+        for i in 0..xs.len() {
+            xs[i] = (xs[i] + x) * 10;
+            ys[i] = (ys[i] + y) * 10;
+
+        }
+
+        self.renderer.filled_polygon(xs, ys, colour).unwrap();
 
         self.renderer.present();
     }
