@@ -21,14 +21,18 @@ pub fn go() {
 
         rng = RNG.as_mut().unwrap();
     }
+    let side_length: u16 = 4;
 
-    let mut grid = dw_hex::Grid::new(6);
+    let mut grid = dw_hex::Grid::new(4);
     for _ in 0..24 {
         grid.push(0xFF000000u32 | rng.gen::<u32>());
     }
 
     for ((x, y), &colour) in grid.indices() {
-        platform.draw_coloured_hexagon(15 * (x + 5) as i16, 9 * (y + 1) as i16, colour);
+        platform.draw_coloured_hexagon(15 * (x + 5) as i16,
+                                       9 * (y + 1) as i16,
+                                       side_length as i16,
+                                       colour);
     }
 
     'running: loop {
@@ -36,7 +40,10 @@ pub fn go() {
         for event in events {
             match event {
                 Event::Quit => break 'running,
-                Event::MouseUp { x, y } => println!("{:?}", (x, y)),
+                Event::MouseUp { x, y } => {
+                    let dw = dw_hex::pixel_to_dw(side_length, (x as i16, y as i16));
+                    println!("{:?}", dw);
+                }
                 // _ => {}
             };
         }

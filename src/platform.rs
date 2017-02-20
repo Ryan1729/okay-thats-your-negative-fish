@@ -62,13 +62,13 @@ impl<'a> Platform<'a> {
     //     self.renderer.present();
     // }
 
-    pub fn draw_coloured_hexagon(&mut self, x: i16, y: i16, colour: u32) {
+    pub fn draw_coloured_hexagon(&mut self, x: i16, y: i16, side_length: i16, colour: u32) {
         let mut xs = &mut [5, -5, -10, -5, 5, 10, 5];
         let mut ys = &mut [-9, -9, 0, 9, 9, 0, -9];
 
         for i in 0..xs.len() {
-            xs[i] = (xs[i] + x) * 5;
-            ys[i] = (ys[i] + y) * 5;
+            xs[i] = (xs[i] + x) * side_length;
+            ys[i] = (ys[i] + y) * side_length;
 
         }
 
@@ -95,32 +95,11 @@ impl<'a> Platform<'a> {
 
         result
     }
-
-
-    pub fn mouse_state(&self) -> MouseState {
-        let platform_mouse_state = self.event_pump.mouse_state();
-
-        MouseState {
-            x: platform_mouse_state.x(),
-            y: platform_mouse_state.y(),
-            left: platform_mouse_state.left(),
-            middle: platform_mouse_state.middle(),
-            right: platform_mouse_state.right(),
-        }
-    }
 }
 
+#[derive(Debug)]
 pub enum Event {
     Quit,
     MouseUp { x: i32, y: i32 },
 }
 use self::Event::*;
-
-#[derive(Debug)]
-pub struct MouseState {
-    x: i32,
-    y: i32,
-    left: bool,
-    middle: bool,
-    right: bool,
-}
