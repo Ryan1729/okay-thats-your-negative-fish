@@ -41,7 +41,7 @@ pub fn go() {
                 Event::Quit => break 'running,
                 Event::MouseUp { x, y } => {
                     let dw = dw_hex::pixel_to_dw(side_length, (x as i16, y as i16));
-                    println!("{:?}", dw);
+                    platform.render_text(&format!("{:?}", dw));
                 }
                 // _ => {}
             };
