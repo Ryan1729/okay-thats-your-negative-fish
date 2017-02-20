@@ -43,32 +43,32 @@ impl<'a> Platform<'a> {
         self.renderer.present();
     }
 
-    pub fn draw_hexagon(&mut self, x: i32, y: i32) {
-        self.renderer.set_draw_color(Color::RGB(66, 66, 66));
-        let mut points = &mut [Point::new(5, -9),
-                               Point::new(-5, -9),
-                               Point::new(-10, 0),
-                               Point::new(-5, 9),
-                               Point::new(5, 9),
-                               Point::new(10, 0),
-                               Point::new(5, -9)];
-
-        for point in points.iter_mut() {
-            *point = point.scale(10).offset(x, y);
-        }
-
-        self.renderer.draw_lines(points).unwrap();
-
-        self.renderer.present();
-    }
+    // pub fn draw_hexagon(&mut self, x: i32, y: i32) {
+    //     self.renderer.set_draw_color(Color::RGB(66, 66, 66));
+    //     let mut points = &mut [Point::new(5, -9),
+    //                            Point::new(-5, -9),
+    //                            Point::new(-10, 0),
+    //                            Point::new(-5, 9),
+    //                            Point::new(5, 9),
+    //                            Point::new(10, 0),
+    //                            Point::new(5, -9)];
+    //
+    //     for point in points.iter_mut() {
+    //         *point = point.scale(10).offset(x, y);
+    //     }
+    //
+    //     self.renderer.draw_lines(points).unwrap();
+    //
+    //     self.renderer.present();
+    // }
 
     pub fn draw_coloured_hexagon(&mut self, x: i16, y: i16, colour: u32) {
         let mut xs = &mut [5, -5, -10, -5, 5, 10, 5];
         let mut ys = &mut [-9, -9, 0, 9, 9, 0, -9];
 
         for i in 0..xs.len() {
-            xs[i] = (xs[i] + x) * 10;
-            ys[i] = (ys[i] + y) * 10;
+            xs[i] = (xs[i] + x) * 5;
+            ys[i] = (ys[i] + y) * 5;
 
         }
 
@@ -82,10 +82,32 @@ impl<'a> Platform<'a> {
             match event {
                 Event::Quit { .. } |
                 Event::KeyDown { /*keycode: Some(Keycode::Escape),*/ .. } => {return true;},
-                _ => {}
+                e => {}
             }
         }
 
         false
     }
+
+    pub fn mouse_state(&self) -> MouseState {
+        let platform_mouse_state = self.event_pump.mouse_state();
+
+        MouseState {
+            x: platform_mouse_state.x(),
+            y: platform_mouse_state.y(),
+            left: platform_mouse_state.left(),
+            middle: platform_mouse_state.middle(),
+            right: platform_mouse_state.right(),
+        }
+    }
+}
+
+
+#[derive(Debug)]
+pub struct MouseState {
+    x: i32,
+    y: i32,
+    left: bool,
+    middle: bool,
+    right: bool,
 }
