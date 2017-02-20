@@ -7,7 +7,7 @@ use sdl2::rect::Point;
 use sdl2::render::Renderer;
 use sdl2::EventPump;
 use sdl2::gfx::primitives::DrawRenderer;
-
+use dw_hex;
 pub struct Platform<'a> {
     renderer: Renderer<'a>,
     event_pump: EventPump,
@@ -62,13 +62,15 @@ impl<'a> Platform<'a> {
     //     self.renderer.present();
     // }
 
-    pub fn draw_coloured_hexagon(&mut self, x: i16, y: i16, side_length: i16, colour: u32) {
+    pub fn draw_coloured_hexagon(&mut self, (x, y): (i16, i16), side_length: u16, colour: u32) {
         let mut xs = &mut [5, -5, -10, -5, 5, 10, 5];
         let mut ys = &mut [-9, -9, 0, 9, 9, 0, -9];
 
+        let radius = dw_hex::short_radius(side_length) as i16;
+
         for i in 0..xs.len() {
-            xs[i] = (xs[i] + x) * side_length;
-            ys[i] = (ys[i] + y) * side_length;
+            xs[i] = (xs[i] + x) * radius;
+            ys[i] = (ys[i] + y) * radius;
 
         }
 

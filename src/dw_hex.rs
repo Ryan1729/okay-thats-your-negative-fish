@@ -1,7 +1,9 @@
 //dw_hex == double width hexagon
 //see http://ondras.github.io/rot.js/manual/#hex/indexing
 
-// fn dw_to_packed((x, y): (usize, usize)) -> (usize, usize) {}
+fn dw_to_packed((x, y): (i16, i16)) -> (i16, i16) {
+    (x / 2 - (y & 1), y)
+}
 
 fn packed_to_dw((x, y): (i16, i16)) -> (i16, i16) {
     (x * 2 + (y & 1), y)
@@ -54,8 +56,18 @@ fn pixel_to_packed(side_length: u16, (x, y): (i16, i16)) -> (i16, i16) {
     }
 }
 
+fn packed_to_pixel(side_length: u16, (x, y): (i16, i16)) -> (i16, i16) {
+    let radius = short_radius(side_length) as i16;
+    let corner_h = corner_height(side_length) as i16;
+
+    (x * 2 * radius + (x & 1) * radius, y * (corner_h + side_length as i16))
+}
+
 pub fn pixel_to_dw(side_length: u16, coords: (i16, i16)) -> (i16, i16) {
     packed_to_dw(pixel_to_packed(side_length, coords))
+}
+pub fn dw_to_pixel(side_length: u16, coords: (i16, i16)) -> (i16, i16) {
+    packed_to_pixel(side_length, dw_to_packed(coords))
 }
 // fn dw_to_linear((x, y): (usize, usize)) -> usize {
 //     4
@@ -72,16 +84,16 @@ fn linear_to_dw(width: usize, i: usize) -> (usize, usize) {
 
 use std::f32::consts::PI;
 
-fn corner_height(side_length: u16) -> u16 {
+pub fn corner_height(side_length: u16) -> u16 {
     (f32::sin(PI / 6f32) * side_length as f32) as u16
 }
-fn short_radius(side_length: u16) -> u16 {
+pub fn short_radius(side_length: u16) -> u16 {
     (f32::cos(PI / 6f32) * side_length as f32) as u16
 }
-fn long_diameter(side_length: u16) -> u16 {
+pub fn long_diameter(side_length: u16) -> u16 {
     side_length + 2 * corner_height(side_length)
 }
-fn short_diameter(side_length: u16) -> u16 {
+pub fn short_diameter(side_length: u16) -> u16 {
     2 * short_radius(side_length)
 }
 

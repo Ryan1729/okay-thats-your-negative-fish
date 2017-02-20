@@ -21,7 +21,7 @@ pub fn go() {
 
         rng = RNG.as_mut().unwrap();
     }
-    let side_length: u16 = 4;
+    let side_length: u16 = 5;
 
     let mut grid = dw_hex::Grid::new(4);
     for _ in 0..24 {
@@ -29,9 +29,8 @@ pub fn go() {
     }
 
     for ((x, y), &colour) in grid.indices() {
-        platform.draw_coloured_hexagon(15 * (x + 5) as i16,
-                                       9 * (y + 1) as i16,
-                                       side_length as i16,
+        platform.draw_coloured_hexagon(dw_hex::dw_to_pixel(side_length, (5 + x as i16, 1 + y as i16)),
+                                       side_length,
                                        colour);
     }
 
