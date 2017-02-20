@@ -1,7 +1,7 @@
 extern crate sdl2;
 
 use sdl2::pixels::Color;
-use sdl2::event::Event;
+use sdl2::event::Event as PlatformEvent;
 use sdl2::keyboard::Keycode;
 use sdl2::rect::Point;
 use sdl2::render::Renderer;
@@ -77,17 +77,25 @@ impl<'a> Platform<'a> {
         self.renderer.present();
     }
 
-    pub fn quit_on_keypress(&mut self) -> bool {
+    pub fn get_events(&mut self) -> Vec<Event> {
+        let mut result = Vec::new();
+
         for event in self.event_pump.poll_iter() {
             match event {
-                Event::Quit { .. } |
-                Event::KeyDown { /*keycode: Some(Keycode::Escape),*/ .. } => {return true;},
-                e => {}
+                PlatformEvent::Quit { .. } |
+                PlatformEvent::KeyDown
+                { /*keycode: Some(Keycode::Escape),*/
+                     .. } => {result.push(Quit)},
+                PlatformEvent::MouseButtonUp{ x, y, .. } =>
+                  {result.push(Event::MouseUp{ x: x, y: y });}
+                _ => {}
+                // e => {println!("{:?}", e);}
             }
         }
 
-        false
+        result
     }
+
 
     pub fn mouse_state(&self) -> MouseState {
         let platform_mouse_state = self.event_pump.mouse_state();
@@ -102,6 +110,11 @@ impl<'a> Platform<'a> {
     }
 }
 
+pub enum Event {
+    Quit,
+    MouseUp { x: i32, y: i32 },
+}
+use self::Event::*;
 
 #[derive(Debug)]
 pub struct MouseState {

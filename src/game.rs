@@ -3,6 +3,7 @@ extern crate sdl2;
 
 use self::rand::{Rng, SeedableRng, StdRng};
 use platform::Platform;
+use platform::Event;
 use dw_hex;
 
 static mut RNG: Option<StdRng> = None;
@@ -31,13 +32,14 @@ pub fn go() {
     }
 
     'running: loop {
-        let should_quit = platform.quit_on_keypress();
-
-        if should_quit {
-            break 'running;
+        let events = platform.get_events();
+        for event in events {
+            match event {
+                Event::Quit => break 'running,
+                Event::MouseUp { x, y } => println!("{:?}", (x, y)),
+                // _ => {}
+            };
         }
-
-        let mouse_state = platform.mouse_state();
 
         platform.flip_frame();
         // The rest of the game loop goes here...
