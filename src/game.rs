@@ -4,7 +4,7 @@ extern crate sdl2;
 use self::rand::{Rng, SeedableRng, StdRng};
 use platform::Platform;
 use platform::Event;
-use dw_hex;
+use axial_hex;
 
 static mut RNG: Option<StdRng> = None;
 
@@ -23,11 +23,12 @@ pub fn go() {
     }
     let side_length: u16 = 32;
 
-    let mut grid = dw_hex::Grid::new(10);
+    let mut grid = axial_hex::Grid::new(10);
     for _ in 0..64 {
         grid.push(0xFF000000u32 | rng.gen::<u32>());
     }
-
+    println!("{:?}",
+             grid.indices().map(|(a, _)| a).collect::<Vec<(usize, usize)>>());
 
 
     'running: loop {
@@ -37,19 +38,37 @@ pub fn go() {
                 Event::Quit => break 'running,
                 Event::MouseUp { x, y } |
                 Event::MouseMove { x, y } => {
-                    let dw = dw_hex::pixel_to_dw(side_length, (x as i16, y as i16));
+                    let axial = axial_hex::pixel_to_axial(side_length, (x as i16, y as i16));
                     platform.render_text(&format!("   pixel: {:?} hexagon: {:?}",
                                                   (x as i16, y as i16),
-                                                  dw));
+                                                  axial));
                 }
                 // _ => {}
             };
         }
 
         for ((x, y), &colour) in grid.indices() {
-            let pixel_coords = add(dw_hex::dw_to_pixel(side_length, (x as i16, y as i16)),
+            let pixel_coords = add(axial_hex::axial_to_pixel(side_length, (x as i16, y as i16)),
                                    (40, 40));
             platform.draw_coloured_hexagon(pixel_coords, side_length, colour);
+        }
+
+        for ((x, y), &colour) in grid.indices() {
+            let (x_section, y_section, x_section_pixel, y_section_pixel) =
+                axial_hex::section(side_length, (x as i16, y as i16));
+
+            let box_size = axial_hex::corner_height(side_length) + side_length;
+
+            platform.draw_box(add((x_section_pixel * box_size as i16,
+                                   y_section_pixel * box_size as i16),
+                                  (40, 40)),
+                              box_size,
+                              box_size,
+                              if y_section & 1 == 0 {
+                                  0xFFFF00FF
+                              } else {
+                                  0x88888888
+                              })
         }
 
         platform.flip_frame();

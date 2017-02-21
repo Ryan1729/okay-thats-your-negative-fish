@@ -7,7 +7,7 @@ use sdl2::render::Renderer;
 use sdl2::EventPump;
 use sdl2::gfx::primitives::DrawRenderer;
 use sdl2::rect::Rect;
-use dw_hex;
+use axial_hex;
 pub struct Platform<'a> {
     renderer: Renderer<'a>,
     event_pump: EventPump,
@@ -123,12 +123,27 @@ impl<'a> Platform<'a> {
         self.renderer.copy(&mut texture, None, Some(target)).unwrap();
     }
 
+    pub fn draw_box(&mut self, (x, y): (i16, i16), width: u16, height: u16, colour: u32) {
+        let ref mut r = self.renderer;
+
+        let old_colour = r.draw_color();
+        r.set_draw_color(color_from_u32(colour));
+
+        r.draw_rect(rect!((x - width as i16 / 2),
+                             self.window_height - (y - height as i16 / 2),
+                             width,
+                             height))
+            .unwrap();
+
+        r.set_draw_color(old_colour);
+    }
+
     pub fn draw_coloured_hexagon(&mut self, (x, y): (i16, i16), side_length: u16, colour: u32) {
         let mut xs: Vec<i16> = Vec::new();
         let mut ys: Vec<i16> = Vec::new();
 
 
-        let radius = dw_hex::short_radius(side_length) as f32;
+        let radius = side_length as f32;
 
         for i in 0..6 {
             xs.push((FLAT_UNIT_HEXAGON_XS[i] * radius) as i16 + x);
@@ -166,6 +181,13 @@ impl<'a> Platform<'a> {
 
         result
     }
+}
+
+fn color_from_u32(bits: u32) -> Color {
+    Color::RGBA((bits & 0x000000FF) as u8,
+                (bits & 0x0000FF00 >> 8) as u8,
+                (bits & 0x00FF0000 >> 16) as u8,
+                (bits & 0xFF000000 >> 24) as u8)
 }
 
 #[derive(Debug)]

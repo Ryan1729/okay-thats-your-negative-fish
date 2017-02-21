@@ -4,7 +4,7 @@ extern crate sdl2;
 
 mod game;
 mod platform;
-mod dw_hex;
+mod axial_hex;
 
 fn main() {
     game::go();
