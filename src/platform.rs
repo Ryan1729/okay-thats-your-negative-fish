@@ -146,8 +146,8 @@ impl<'a> Platform<'a> {
         let radius = side_length as f32;
 
         for i in 0..6 {
-            xs.push((FLAT_UNIT_HEXAGON_XS[i] * radius) as i16 + x);
-            ys.push(self.window_height - ((FLAT_UNIT_HEXAGON_YS[i] * radius) as i16 + y));
+            xs.push((FLAT_UNIT_HEXAGON_XS[i] * radius + x as f32) as i16);
+            ys.push(self.window_height - ((FLAT_UNIT_HEXAGON_YS[i] * radius + y as f32) as i16));
         }
 
         self.renderer.filled_polygon(&xs, &ys, colour).unwrap();
