@@ -1,3 +1,4 @@
+
 extern crate sdl2;
 
 use sdl2::pixels::Color;
@@ -21,6 +22,48 @@ macro_rules! rect(
     )
 );
 
+use std::f32::consts::PI;
+
+const TAU_OVER_SIX: f32 = PI / 3f32;
+const TAU_OVER_TWELEVE: f32 = PI / 6f32;
+
+lazy_static!{
+    static ref FLAT_UNIT_HEXAGON_XS: [f32 ; 7] =
+        [f32::cos(TAU_OVER_SIX * 0f32),
+         f32::cos(TAU_OVER_SIX * 1f32),
+         f32::cos(TAU_OVER_SIX * 2f32),
+         f32::cos(TAU_OVER_SIX * 3f32),
+         f32::cos(TAU_OVER_SIX * 4f32),
+         f32::cos(TAU_OVER_SIX * 5f32),
+         f32::cos(TAU_OVER_SIX * 6f32)];
+
+     static ref FLAT_UNIT_HEXAGON_YS: [f32 ; 7] =
+         [f32::sin(TAU_OVER_SIX * 0f32),
+          f32::sin(TAU_OVER_SIX * 1f32),
+          f32::sin(TAU_OVER_SIX * 2f32),
+          f32::sin(TAU_OVER_SIX * 3f32),
+          f32::sin(TAU_OVER_SIX * 4f32),
+          f32::sin(TAU_OVER_SIX * 5f32),
+          f32::sin(TAU_OVER_SIX * 6f32)];
+
+    static ref POINTY_UNIT_HEXAGON_XS: [f32 ; 7] =
+        [f32::cos(TAU_OVER_TWELEVE * 0f32),
+         f32::cos(TAU_OVER_TWELEVE * 1f32),
+         f32::cos(TAU_OVER_TWELEVE * 2f32),
+         f32::cos(TAU_OVER_TWELEVE * 3f32),
+         f32::cos(TAU_OVER_TWELEVE * 4f32),
+         f32::cos(TAU_OVER_TWELEVE * 5f32),
+         f32::cos(TAU_OVER_TWELEVE * 6f32)];
+
+    static ref POINTY_UNIT_HEXAGON_YS: [f32 ; 7] =
+        [f32::sin(TAU_OVER_TWELEVE * 0f32),
+         f32::sin(TAU_OVER_TWELEVE * 1f32),
+         f32::sin(TAU_OVER_TWELEVE * 2f32),
+         f32::sin(TAU_OVER_TWELEVE * 3f32),
+         f32::sin(TAU_OVER_TWELEVE * 4f32),
+         f32::sin(TAU_OVER_TWELEVE * 5f32),
+         f32::sin(TAU_OVER_TWELEVE * 6f32)];
+}
 
 
 impl<'a> Platform<'a> {
@@ -60,26 +103,8 @@ impl<'a> Platform<'a> {
 
     pub fn flip_frame(&mut self) {
         self.renderer.present();
+        self.renderer.set_draw_color(Color::RGB(250, 224, 55));
     }
-
-    // pub fn draw_hexagon(&mut self, x: i32, y: i32) {
-    //     self.renderer.set_draw_color(Color::RGB(66, 66, 66));
-    //     let mut points = &mut [Point::new(5, -9),
-    //                            Point::new(-5, -9),
-    //                            Point::new(-10, 0),
-    //                            Point::new(-5, 9),
-    //                            Point::new(5, 9),
-    //                            Point::new(10, 0),
-    //                            Point::new(5, -9)];
-    //
-    //     for point in points.iter_mut() {
-    //         *point = point.scale(10).offset(x, y);
-    //     }
-    //
-    //     self.renderer.draw_lines(points).unwrap();
-    //
-    //     self.renderer.present();
-    // }
 
     pub fn render_text(&mut self, text: &str) {
         // Load a font
@@ -93,27 +118,29 @@ impl<'a> Platform<'a> {
 
         self.renderer.clear();
 
-        let target = rect!(400, 400, 250, 100);
+        let target = rect!(0, 0, text.len() * 20, 100);
 
         self.renderer.copy(&mut texture, None, Some(target)).unwrap();
-
-        self.renderer.present();
     }
 
     pub fn draw_coloured_hexagon(&mut self, (x, y): (i16, i16), side_length: u16, colour: u32) {
-        let mut xs = &mut [5, -5, -10, -5, 5, 10, 5];
-        let mut ys = &mut [-9, -9, 0, 9, 9, 0, -9];
+        let mut xs: Vec<i16> = Vec::new();
+        let mut ys: Vec<i16> = Vec::new();
 
-        let radius = dw_hex::short_radius(side_length) as i16;
 
-        for i in 0..xs.len() {
-            xs[i] = (xs[i] + x) * radius;
-            ys[i] = self.window_height - ((ys[i] + y) * radius);
+        let radius = dw_hex::short_radius(side_length) as f32;
+
+        for i in 0..6 {
+            xs.push((FLAT_UNIT_HEXAGON_XS[i] * radius) as i16 + x);
+            ys.push(self.window_height - ((FLAT_UNIT_HEXAGON_YS[i] * radius) as i16 + y));
         }
 
-        self.renderer.filled_polygon(xs, ys, colour).unwrap();
+        self.renderer.filled_polygon(&xs, &ys, colour).unwrap();
 
-        self.renderer.present();
+        // let mut xs = &mut [5, -5, -10, -5, 5, 10, 5];
+        // let mut ys = &mut [691, 691, 700, 709, 709, 700, 691];
+        //
+        // self.renderer.filled_polygon(xs, ys, colour).unwrap();
     }
 
     pub fn get_events(&mut self) -> Vec<Event> {
@@ -126,7 +153,12 @@ impl<'a> Platform<'a> {
                 { /*keycode: Some(Keycode::Escape),*/
                      .. } => {result.push(Quit)},
                 PlatformEvent::MouseButtonUp{ x, y, .. } =>
-                  {result.push(Event::MouseUp{ x: x as i16, y: self.window_height - y as i16 });}
+                    {result.push(
+                        Event::MouseUp{ x: x as i16, y: self.window_height - y as i16 });}
+
+                PlatformEvent::MouseMotion{ x, y, .. } =>
+                    {result.push(
+                        Event::MouseMove{ x: x as i16, y: self.window_height - y as i16 });}
                 _ => {}
                 // e => {println!("{:?}", e);}
             }
@@ -140,5 +172,6 @@ impl<'a> Platform<'a> {
 pub enum Event {
     Quit,
     MouseUp { x: i16, y: i16 },
+    MouseMove { x: i16, y: i16 },
 }
 use self::Event::*;

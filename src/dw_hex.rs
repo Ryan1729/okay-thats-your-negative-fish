@@ -1,6 +1,9 @@
 //dw_hex == double width hexagon
 //see http://ondras.github.io/rot.js/manual/#hex/indexing
 
+// sqrt(3)
+const HEXAGON_HEIGHT: f32 = 1.7320508075688772935274;
+
 fn dw_to_packed((x, y): (i16, i16)) -> (i16, i16) {
     (x / 2 - (y & 1), y)
 }
@@ -66,8 +69,12 @@ fn packed_to_pixel(side_length: u16, (x, y): (i16, i16)) -> (i16, i16) {
 pub fn pixel_to_dw(side_length: u16, coords: (i16, i16)) -> (i16, i16) {
     packed_to_dw(pixel_to_packed(side_length, coords))
 }
-pub fn dw_to_pixel(side_length: u16, coords: (i16, i16)) -> (i16, i16) {
-    packed_to_pixel(side_length, dw_to_packed(coords))
+pub fn dw_to_pixel(side_length: u16, (x, y): (i16, i16)) -> (i16, i16) {
+    let radius = short_radius(side_length) as i16;
+
+    //we could skip a conversion from f32 to i16 before multiplying by HEXAGON_HEIGHT
+    //but the truncation makes is necessary for the hexes to line up
+    (x * (radius + radius / 2), y * (HEXAGON_HEIGHT / 2f32 * radius as f32) as i16)
 }
 // fn dw_to_linear((x, y): (usize, usize)) -> usize {
 //     4

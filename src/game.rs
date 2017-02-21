@@ -21,33 +21,43 @@ pub fn go() {
 
         rng = RNG.as_mut().unwrap();
     }
-    let side_length: u16 = 5;
+    let side_length: u16 = 32;
 
-    let mut grid = dw_hex::Grid::new(4);
-    for _ in 0..24 {
+    let mut grid = dw_hex::Grid::new(10);
+    for _ in 0..64 {
         grid.push(0xFF000000u32 | rng.gen::<u32>());
     }
 
-    for ((x, y), &colour) in grid.indices() {
-        platform.draw_coloured_hexagon(dw_hex::dw_to_pixel(side_length, (5 + x as i16, 1 + y as i16)),
-                                       side_length,
-                                       colour);
-    }
+
 
     'running: loop {
         let events = platform.get_events();
         for event in events {
             match event {
                 Event::Quit => break 'running,
-                Event::MouseUp { x, y } => {
+                Event::MouseUp { x, y } |
+                Event::MouseMove { x, y } => {
                     let dw = dw_hex::pixel_to_dw(side_length, (x as i16, y as i16));
-                    platform.render_text(&format!("{:?}", dw));
+                    platform.render_text(&format!("   pixel: {:?} hexagon: {:?}",
+                                                  (x as i16, y as i16),
+                                                  dw));
                 }
                 // _ => {}
             };
         }
 
+        for ((x, y), &colour) in grid.indices() {
+            let pixel_coords = add(dw_hex::dw_to_pixel(side_length, (x as i16, y as i16)),
+                                   (40, 40));
+            platform.draw_coloured_hexagon(pixel_coords, side_length, colour);
+        }
+
         platform.flip_frame();
         // The rest of the game loop goes here...
     }
+}
+
+use std::ops::Add;
+fn add<T: Add<Output = T>>((x1, y1): (T, T), (x2, y2): (T, T)) -> (T, T) {
+    (x1 + x2, y1 + y2)
 }
