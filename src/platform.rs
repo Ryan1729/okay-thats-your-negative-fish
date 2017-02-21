@@ -129,10 +129,25 @@ impl<'a> Platform<'a> {
         let old_colour = r.draw_color();
         r.set_draw_color(color_from_u32(colour));
 
-        r.draw_rect(rect!((x - width as i16 / 2),
-                             self.window_height - (y - height as i16 / 2),
+        r.draw_rect(rect!((x - (width as i16 / 2)),
+                             self.window_height - (y + (height as i16 / 2)),
                              width,
                              height))
+            .unwrap();
+
+        r.set_draw_color(old_colour);
+    }
+    pub fn draw_box_upper_left(&mut self,
+                               (x, y): (i16, i16),
+                               width: u16,
+                               height: u16,
+                               colour: u32) {
+        let ref mut r = self.renderer;
+
+        let old_colour = r.draw_color();
+        r.set_draw_color(color_from_u32(colour));
+
+        r.draw_rect(rect!(x, self.window_height - y, width, height))
             .unwrap();
 
         r.set_draw_color(old_colour);
@@ -146,8 +161,9 @@ impl<'a> Platform<'a> {
         let radius = side_length as f32;
 
         for i in 0..6 {
-            xs.push((FLAT_UNIT_HEXAGON_XS[i] * radius + x as f32) as i16);
-            ys.push(self.window_height - ((FLAT_UNIT_HEXAGON_YS[i] * radius + y as f32) as i16));
+            xs.push((FLAT_UNIT_HEXAGON_XS[i] * radius + x as f32).round() as i16);
+            ys.push(self.window_height -
+                    ((FLAT_UNIT_HEXAGON_YS[i] * radius + y as f32).round() as i16));
         }
 
         self.renderer.filled_polygon(&xs, &ys, colour).unwrap();

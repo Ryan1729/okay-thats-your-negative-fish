@@ -54,21 +54,13 @@ pub fn go() {
         }
 
         for ((x, y), &colour) in grid.indices() {
-            let (x_section, y_section, x_section_pixel, y_section_pixel) =
-                axial_hex::section(side_length, (x as i16, y as i16));
+            let box_size = axial_hex::corner_height(side_length) * 2 + side_length;
 
-            let box_size = axial_hex::corner_height(side_length) + side_length;
+            let pixel_coords = add(axial_hex::axial_to_pixel(side_length, (x as i16, y as i16)),
+                                   (40, 40));
 
-            platform.draw_box(add((x_section_pixel * box_size as i16,
-                                   y_section_pixel * box_size as i16),
-                                  (40, 40)),
-                              box_size,
-                              box_size,
-                              if y_section & 1 == 0 {
-                                  0xFFFF00FF
-                              } else {
-                                  0x88888888
-                              })
+            let c = 0xFFFF0000 | ((y & 1) * 0xFFFF) as u32;
+            platform.draw_box(pixel_coords, box_size, box_size, c)
         }
 
         platform.flip_frame();

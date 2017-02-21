@@ -1,37 +1,53 @@
 //see http://www.redblobgames.com/grids/hexagons for a description of the axial coordinate system
 
-// sqrt(3)
-const HEXAGON_HEIGHT: f32 = 1.7320508075688772935274;
+const SQRT_3: f32 = 1.7320508075688772935274;
 
-pub fn section(side_length: u16, (x, y): (i16, i16)) -> (i16, i16, i16, i16) {
-    let corner_h = corner_height(side_length) as i16;
-
-    let section_width = long_diameter(side_length) as i16;
-    let section_height = corner_h + (side_length as i16);
-    //splits the grind into (two different types of) sections each containing pieces of three hexes
-    let x_section = x / section_width;
-    let y_section = y / section_height;
-
-    //the pixel value within a spacewith the origin at the upper left corner
-    //of the current section
-    let x_section_pixel: i16 = x - (x_section * section_width);
-    let y_section_pixel: i16 = y - (y_section * section_height);
-
-    (x_section, y_section, x_section_pixel, y_section_pixel)
-}
-
-fn axial_to_cube((x, y): (i16, i16)) -> (i16, i16, i16) {
+use std::ops::Sub;
+use std::ops::Neg;
+fn axial_to_cube<T: Sub<Output = T> + Neg<Output = T> + Copy>((x, y): (T, T)) -> (T, T, T) {
     (x, -x - y, y)
 }
 
-pub fn pixel_to_axial(side_length: u16, (x, y): (i16, i16)) -> (i16, i16) {
-    (-1, -1)
+fn cube_to_axial<T>((x, y, z): (T, T, T)) -> (T, T) {
+    (x, z)
 }
+
+pub fn pixel_to_axial(side_length: u16, (x, y): (i16, i16)) -> (i16, i16) {
+    let fx = x as f32;
+    let fy = y as f32;
+    let side = side_length as f32;
+    axial_round((fx as f32 * (2f32 / 3f32) / side as f32, (-fx / 3f32 + SQRT_3 / 3f32 * fy) / side))
+}
+
+fn axial_round(coords: (f32, f32)) -> (i16, i16) {
+    cube_to_axial(cube_round(axial_to_cube(coords)))
+}
+
+fn cube_round((x, y, z): (f32, f32, f32)) -> (i16, i16, i16) {
+    let mut rx = x.round();
+    let mut ry = y.round();
+    let mut rz = z.round();
+
+    let x_diff = f32::abs(rx - x);
+    let y_diff = f32::abs(ry - y);
+    let z_diff = f32::abs(rz - z);
+
+    if x_diff > y_diff && x_diff > z_diff {
+        rx = -ry - rz;
+    } else if y_diff > z_diff {
+        ry = -rx - rz;
+    } else {
+        rz = -rx - ry;
+    }
+
+    (rx as i16, ry as i16, rz as i16)
+}
+
 
 pub fn axial_to_pixel(side_length: u16, (x, y): (i16, i16)) -> (i16, i16) {
     let side = side_length as i16;
 
-    (x * (side + side / 2), (HEXAGON_HEIGHT * side as f32 * (y as f32 + x as f32 / 2f32)) as i16)
+    (x * (side + side / 2), (SQRT_3 * side as f32 * (y as f32 + x as f32 / 2f32)) as i16)
 }
 // fn dw_to_linear((x, y): (usize, usize)) -> usize {
 //     4
