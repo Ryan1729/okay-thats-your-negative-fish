@@ -7,7 +7,7 @@ use platform::Event;
 use axial_hex;
 
 static mut RNG: Option<StdRng> = None;
-
+use std;
 
 pub fn go() {
     let mut platform = Platform::new();
@@ -27,11 +27,30 @@ pub fn go() {
     for _ in 0..64 {
         grid.push(0xFF000000u32 | rng.gen::<u32>());
     }
-    println!("{:?}",
-             grid.indices().map(|(a, _)| a).collect::<Vec<(usize, usize)>>());
 
     let mut current_axial = (0, 0);
-    let grid_offset = (0, 0);
+
+    let mut grid_offset = (0, 0);
+
+    let args: Vec<String> = std::env::args().collect();
+
+    if args.len() >= 3 {
+        match (args[1].parse(), args[2].parse()) {
+            (Ok(x), Ok(y)) => {
+                grid_offset = (x, y);
+                println!("set grid_offset to {:?}", grid_offset);
+            }
+            _ => {
+                println!("could not parse grid_offset.");
+                println!("recieved {:?}", args);
+            }
+        }
+    } else {
+        if args.len() != 1 {
+            println!("usage: [x y]");
+            println!("example {} 20 40", args[0]);
+        }
+    }
 
     'running: loop {
         let events = platform.get_events();
@@ -41,7 +60,7 @@ pub fn go() {
                 Event::MouseUp { x, y } |
                 Event::MouseMove { x, y } => {
                     current_axial = axial_hex::pixel_to_axial(side_length, (x as i16, y as i16));
-                    platform.render_text(&format!("   pixel: {:?} hexagon: {:?}",
+                    platform.render_text(&format!("   pixel: {:?} hex: {:?}",
                                                   (x as i16, y as i16),
                                                   current_axial));
                 }

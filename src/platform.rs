@@ -120,7 +120,7 @@ impl<'a> Platform<'a> {
 
         self.renderer.clear();
 
-        let target = rect!(0, self.window_height - 100, text.len() * 20, 100);
+        let target = rect!(100, self.window_height - 100, text.len() * 20, 100);
 
         self.renderer.copy(&mut texture, None, Some(target)).unwrap();
     }
