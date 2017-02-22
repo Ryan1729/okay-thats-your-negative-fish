@@ -21,7 +21,7 @@ pub fn go() {
 
         rng = RNG.as_mut().unwrap();
     }
-    let side_length: u16 = 32;
+    let side_length: u16 = 48;
 
     let mut grid = axial_hex::Grid::new(10);
     for _ in 0..64 {
@@ -30,6 +30,8 @@ pub fn go() {
     println!("{:?}",
              grid.indices().map(|(a, _)| a).collect::<Vec<(usize, usize)>>());
 
+    let mut current_axial = (0, 0);
+    let grid_offset = (0, 0);
 
     'running: loop {
         let events = platform.get_events();
@@ -38,10 +40,10 @@ pub fn go() {
                 Event::Quit => break 'running,
                 Event::MouseUp { x, y } |
                 Event::MouseMove { x, y } => {
-                    let axial = axial_hex::pixel_to_axial(side_length, (x as i16, y as i16));
+                    current_axial = axial_hex::pixel_to_axial(side_length, (x as i16, y as i16));
                     platform.render_text(&format!("   pixel: {:?} hexagon: {:?}",
                                                   (x as i16, y as i16),
-                                                  axial));
+                                                  current_axial));
                 }
                 // _ => {}
             };
@@ -49,19 +51,46 @@ pub fn go() {
 
         for ((x, y), &colour) in grid.indices() {
             let pixel_coords = add(axial_hex::axial_to_pixel(side_length, (x as i16, y as i16)),
-                                   (40, 40));
-            platform.draw_coloured_hexagon(pixel_coords, side_length, colour);
+                                   grid_offset);
+
+
+            platform.draw_coloured_hexagon(pixel_coords,
+                                           side_length,
+                                           if current_axial == (x as i16, y as i16) {
+                                               0xFFFFFFFF
+                                           } else {
+                                               colour
+                                           });
         }
 
         for ((x, y), &colour) in grid.indices() {
-            let box_size = axial_hex::corner_height(side_length) * 2 + side_length;
-
             let pixel_coords = add(axial_hex::axial_to_pixel(side_length, (x as i16, y as i16)),
-                                   (40, 40));
+                                   grid_offset);
+
+
 
             let c = 0xFFFF0000 | ((y & 1) * 0xFFFF) as u32;
-            platform.draw_box(pixel_coords, box_size, box_size, c)
+            platform.draw_box(pixel_coords,
+                              axial_hex::long_diameter(side_length),
+                              axial_hex::short_diameter(side_length),
+                              c)
         }
+
+        let mouse_state = platform.mouse_state();
+        let window_height = platform.window_height;
+
+        // platform.render_to_buffer(&|buffer: &mut [u8], pitch: usize| for y in 0..256 {
+        //     for x in 0..256 {
+        //         let (ax, ay) = axial_hex::pixel_to_axial(side_length,
+        //                                                  add((x as i16, y as i16),
+        //                                                      (mouse_state.x as i16,
+        //                                                       mouse_state.y as i16)));
+        //         let offset = y * pitch + x * 3;
+        //         buffer[offset + 0] = (2 * ax) as u8;
+        //         buffer[offset + 1] = (2 * ay) as u8;
+        //         buffer[offset + 2] = 0;
+        //     }
+        // });
 
         platform.flip_frame();
         // The rest of the game loop goes here...

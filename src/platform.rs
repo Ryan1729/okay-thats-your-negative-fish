@@ -7,12 +7,14 @@ use sdl2::render::Renderer;
 use sdl2::EventPump;
 use sdl2::gfx::primitives::DrawRenderer;
 use sdl2::rect::Rect;
+use sdl2::pixels::PixelFormatEnum;
+
 use axial_hex;
 pub struct Platform<'a> {
-    renderer: Renderer<'a>,
+    pub renderer: Renderer<'a>,
     event_pump: EventPump,
-    window_width: i16,
-    window_height: i16,
+    pub window_width: i16,
+    pub window_height: i16,
 }
 
 // handle the annoying Rect i32
@@ -118,7 +120,7 @@ impl<'a> Platform<'a> {
 
         self.renderer.clear();
 
-        let target = rect!(0, 0, text.len() * 20, 100);
+        let target = rect!(0, self.window_height - 100, text.len() * 20, 100);
 
         self.renderer.copy(&mut texture, None, Some(target)).unwrap();
     }
@@ -167,11 +169,6 @@ impl<'a> Platform<'a> {
         }
 
         self.renderer.filled_polygon(&xs, &ys, colour).unwrap();
-
-        // let mut xs = &mut [5, -5, -10, -5, 5, 10, 5];
-        // let mut ys = &mut [691, 691, 700, 709, 709, 700, 691];
-        //
-        // self.renderer.filled_polygon(xs, ys, colour).unwrap();
     }
 
     pub fn get_events(&mut self) -> Vec<Event> {
@@ -197,6 +194,47 @@ impl<'a> Platform<'a> {
 
         result
     }
+
+
+    pub fn render_to_buffer(&mut self, render_commands: &Fn(&mut [u8], usize)) {
+
+        let mut texture = self.renderer
+            .create_texture_streaming(PixelFormatEnum::RGB24, 256, 256)
+            .unwrap();
+        // Create a red-green gradient
+        texture.with_lock(None, render_commands)
+            .unwrap();
+
+        let platform_mouse_state = self.event_pump.mouse_state();
+
+        self.renderer
+            .copy(&texture,
+                  None,
+                  Some(Rect::new(platform_mouse_state.x(), platform_mouse_state.y(), 256, 256)))
+            .unwrap();
+    }
+
+    pub fn mouse_state(&self) -> MouseState {
+        let platform_mouse_state = self.event_pump.mouse_state();
+
+        MouseState {
+            x: platform_mouse_state.x(),
+            y: self.window_height as i32 - platform_mouse_state.y(),
+            left: platform_mouse_state.left(),
+            middle: platform_mouse_state.middle(),
+            right: platform_mouse_state.right(),
+        }
+    }
+}
+
+
+#[derive(Debug)]
+pub struct MouseState {
+    pub x: i32,
+    pub y: i32,
+    pub left: bool,
+    pub middle: bool,
+    pub right: bool,
 }
 
 fn color_from_u32(bits: u32) -> Color {
