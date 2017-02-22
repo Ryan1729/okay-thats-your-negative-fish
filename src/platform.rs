@@ -8,13 +8,21 @@ use sdl2::EventPump;
 use sdl2::gfx::primitives::DrawRenderer;
 use sdl2::rect::Rect;
 use sdl2::pixels::PixelFormatEnum;
+use std::path::Path;
+use sdl2::TimerSubsystem;
+use sdl2::rect::Point;
 
 use axial_hex;
+
 pub struct Platform<'a> {
     pub renderer: Renderer<'a>,
     event_pump: EventPump,
     pub window_width: i16,
     pub window_height: i16,
+    timer: TimerSubsystem,
+    anim_texture: sdl2::render::Texture,
+    source_rect: sdl2::rect::Rect,
+    dest_rect: sdl2::rect::Rect,
 }
 
 // handle the annoying Rect i32
@@ -82,10 +90,18 @@ impl<'a> Platform<'a> {
             .build()
             .unwrap();
 
-        let mut renderer = window.renderer().build().unwrap();
+        let mut renderer = window.renderer().accelerated().build().unwrap();
 
         renderer.set_draw_color(Color::RGB(250, 224, 55));
         renderer.clear();
+
+        let temp_surface =
+            sdl2::surface::Surface::load_bmp(Path::new("assets/hexagonPack_sheet.bmp")).unwrap();
+        let anim_texture = renderer.create_texture_from_surface(&temp_surface).unwrap();
+        let center = Point::new((window_width / 2) as i32, (window_height / 2) as i32);
+        let source_rect = Rect::new(0, 0, 128, 82);
+        let mut dest_rect = Rect::new(0, 0, 128, 82);
+        dest_rect.center_on(center);
 
         // // Load a font
         // let ttf_context = sdl2::ttf::init().unwrap();
@@ -95,11 +111,17 @@ impl<'a> Platform<'a> {
 
         let event_pump = sdl_context.event_pump().unwrap();
 
+        let timer = sdl_context.timer().unwrap();
+
         Platform {
             renderer: renderer,
             event_pump: event_pump,
             window_width: window_width as i16,
             window_height: window_height as i16,
+            timer: timer,
+            anim_texture: anim_texture,
+            source_rect: source_rect,
+            dest_rect: dest_rect,
         }
     }
 
@@ -212,6 +234,23 @@ impl<'a> Platform<'a> {
                   None,
                   Some(Rect::new(platform_mouse_state.x(), platform_mouse_state.y(), 256, 256)))
             .unwrap();
+    }
+
+    pub fn animate(&mut self) {
+        let ticks = self.timer.ticks();
+
+        self.source_rect.set_x((128 * ((ticks / 100) % 6)) as i32);
+        self.renderer.clear();
+        self.renderer
+            .copy_ex(&self.anim_texture,
+                     Some(self.source_rect),
+                     Some(self.dest_rect),
+                     10.0,
+                     None,
+                     true,
+                     false)
+            .unwrap();
+        self.renderer.present();
     }
 
     pub fn mouse_state(&self) -> MouseState {

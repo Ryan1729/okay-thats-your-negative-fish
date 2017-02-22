@@ -113,6 +113,8 @@ pub fn go() {
         //     }
         // });
 
+        platform.animate();
+
         platform.flip_frame();
         // The rest of the game loop goes here...
     }
