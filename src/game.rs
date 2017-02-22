@@ -59,7 +59,9 @@ pub fn go() {
                 Event::Quit => break 'running,
                 Event::MouseUp { x, y } |
                 Event::MouseMove { x, y } => {
-                    current_axial = axial_hex::pixel_to_axial(side_length, (x as i16, y as i16));
+                    current_axial = axial_hex::pixel_to_axial(side_length,
+                                                              sub((x as i16, y as i16),
+                                                                  grid_offset));
                     platform.render_text(&format!("   pixel: {:?} hex: {:?}",
                                                   (x as i16, y as i16),
                                                   current_axial));
@@ -119,4 +121,9 @@ pub fn go() {
 use std::ops::Add;
 fn add<T: Add<Output = T>>((x1, y1): (T, T), (x2, y2): (T, T)) -> (T, T) {
     (x1 + x2, y1 + y2)
+}
+
+use std::ops::Sub;
+fn sub<T: Sub<Output = T>>((x1, y1): (T, T), (x2, y2): (T, T)) -> (T, T) {
+    (x1 - x2, y1 - y2)
 }
