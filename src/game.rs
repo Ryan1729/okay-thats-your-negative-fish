@@ -30,7 +30,7 @@ pub fn go() {
 
     let mut current_axial = (0, 0);
 
-    let mut grid_offset = (0, 0);
+    let mut grid_offset = (0, 50);
 
     let args: Vec<String> = std::env::args().collect();
 
@@ -59,9 +59,9 @@ pub fn go() {
                 Event::Quit => break 'running,
                 Event::MouseUp { x, y } |
                 Event::MouseMove { x, y } => {
-                    current_axial = axial_hex::pixel_to_axial(side_length,
-                                                              sub((x as i16, y as i16),
-                                                                  grid_offset));
+                    current_axial = axial_hex::pixel_to_axial_pointy(side_length,
+                                                                     sub((x as i16, y as i16),
+                                                                         grid_offset));
                     platform.render_text(&format!("   pixel: {:?} hex: {:?}",
                                                   (x as i16, y as i16),
                                                   current_axial));
@@ -71,7 +71,8 @@ pub fn go() {
         }
 
         for ((x, y), &colour) in grid.indices() {
-            let pixel_coords = add(axial_hex::axial_to_pixel(side_length, (x as i16, y as i16)),
+            let pixel_coords = add(axial_hex::axial_to_pixel_pointy(side_length,
+                                                                    (x as i16, y as i16)),
                                    grid_offset);
 
 
@@ -85,15 +86,16 @@ pub fn go() {
         }
 
         for ((x, y), &colour) in grid.indices() {
-            let pixel_coords = add(axial_hex::axial_to_pixel(side_length, (x as i16, y as i16)),
+            let pixel_coords = add(axial_hex::axial_to_pixel_pointy(side_length,
+                                                                    (x as i16, y as i16)),
                                    grid_offset);
 
 
 
             let c = 0xFFFF0000 | ((y & 1) * 0xFFFF) as u32;
             platform.draw_box(pixel_coords,
-                              axial_hex::long_diameter(side_length),
                               axial_hex::short_diameter(side_length),
+                              axial_hex::long_diameter(side_length),
                               c)
         }
 
@@ -102,7 +104,7 @@ pub fn go() {
 
         // platform.render_to_buffer(&|buffer: &mut [u8], pitch: usize| for y in 0..256 {
         //     for x in 0..256 {
-        //         let (ax, ay) = axial_hex::pixel_to_axial(side_length,
+        //         let (ax, ay) = axial_hex::pixel_to_axial_pointy(side_length,
         //                                                  add((x as i16, y as i16),
         //                                                      (mouse_state.x as i16,
         //                                                       mouse_state.y as i16)));

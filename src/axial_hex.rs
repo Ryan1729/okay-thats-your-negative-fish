@@ -8,15 +8,21 @@ fn axial_to_cube<T: Sub<Output = T> + Neg<Output = T> + Copy>((x, y): (T, T)) ->
     (x, -x - y, y)
 }
 
-fn cube_to_axial<T>((x, y, z): (T, T, T)) -> (T, T) {
+fn cube_to_axial<T>((x, _, z): (T, T, T)) -> (T, T) {
     (x, z)
 }
 
-pub fn pixel_to_axial(side_length: u16, (x, y): (i16, i16)) -> (i16, i16) {
+pub fn pixel_to_axial_flat(side_length: u16, (x, y): (i16, i16)) -> (i16, i16) {
     let fx = x as f32;
     let fy = y as f32;
     let side = side_length as f32;
     axial_round((fx as f32 * (2f32 / 3f32) / side as f32, (-fx / 3f32 + SQRT_3 / 3f32 * fy) / side))
+}
+pub fn pixel_to_axial_pointy(side_length: u16, (x, y): (i16, i16)) -> (i16, i16) {
+    let fx = x as f32;
+    let fy = y as f32;
+    let side = side_length as f32;
+    axial_round(((-fy / 3f32 + SQRT_3 / 3f32 * fx) / side, fy as f32 * (2f32 / 3f32) / side as f32))
 }
 
 fn axial_round(coords: (f32, f32)) -> (i16, i16) {
@@ -44,10 +50,15 @@ fn cube_round((x, y, z): (f32, f32, f32)) -> (i16, i16, i16) {
 }
 
 
-pub fn axial_to_pixel(side_length: u16, (x, y): (i16, i16)) -> (i16, i16) {
+pub fn axial_to_pixel_flat(side_length: u16, (x, y): (i16, i16)) -> (i16, i16) {
     let side = side_length as i16;
 
     (x * (side + side / 2), (SQRT_3 * side as f32 * (y as f32 + x as f32 / 2f32)) as i16)
+}
+pub fn axial_to_pixel_pointy(side_length: u16, (x, y): (i16, i16)) -> (i16, i16) {
+    let side = side_length as i16;
+
+    ((SQRT_3 * side as f32 * (x as f32 + y as f32 / 2f32)) as i16, y * (side + side / 2))
 }
 // fn dw_to_linear((x, y): (usize, usize)) -> usize {
 //     4

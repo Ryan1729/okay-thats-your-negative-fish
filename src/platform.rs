@@ -56,22 +56,22 @@ lazy_static!{
           f32::sin(TAU_OVER_SIX * 6f32)];
 
     static ref POINTY_UNIT_HEXAGON_XS: [f32 ; 7] =
-        [f32::cos(TAU_OVER_TWELEVE * 0f32),
-         f32::cos(TAU_OVER_TWELEVE * 1f32),
-         f32::cos(TAU_OVER_TWELEVE * 2f32),
+        [f32::cos(TAU_OVER_TWELEVE * 1f32),
          f32::cos(TAU_OVER_TWELEVE * 3f32),
-         f32::cos(TAU_OVER_TWELEVE * 4f32),
          f32::cos(TAU_OVER_TWELEVE * 5f32),
-         f32::cos(TAU_OVER_TWELEVE * 6f32)];
+         f32::cos(TAU_OVER_TWELEVE * 7f32),
+         f32::cos(TAU_OVER_TWELEVE * 9f32),
+         f32::cos(TAU_OVER_TWELEVE * 11f32),
+         f32::cos(TAU_OVER_TWELEVE * 13f32)];
 
     static ref POINTY_UNIT_HEXAGON_YS: [f32 ; 7] =
-        [f32::sin(TAU_OVER_TWELEVE * 0f32),
-         f32::sin(TAU_OVER_TWELEVE * 1f32),
-         f32::sin(TAU_OVER_TWELEVE * 2f32),
+        [f32::sin(TAU_OVER_TWELEVE * 1f32),
          f32::sin(TAU_OVER_TWELEVE * 3f32),
-         f32::sin(TAU_OVER_TWELEVE * 4f32),
          f32::sin(TAU_OVER_TWELEVE * 5f32),
-         f32::sin(TAU_OVER_TWELEVE * 6f32)];
+         f32::sin(TAU_OVER_TWELEVE * 7f32),
+         f32::sin(TAU_OVER_TWELEVE * 9f32),
+         f32::sin(TAU_OVER_TWELEVE * 11f32),
+         f32::sin(TAU_OVER_TWELEVE * 13f32)];
 }
 
 
@@ -140,7 +140,7 @@ impl<'a> Platform<'a> {
 
         self.renderer.clear();
 
-        let target = rect!(100, self.window_height - 100, text.len() * 20, 100);
+        let target = rect!(100, self.window_height - 600, text.len() * 20, 100);
 
         self.renderer.copy(&mut texture, None, Some(target)).unwrap();
     }
@@ -183,9 +183,9 @@ impl<'a> Platform<'a> {
         let radius = side_length as f32;
 
         for i in 0..6 {
-            xs.push((FLAT_UNIT_HEXAGON_XS[i] * radius + x as f32).round() as i16);
+            xs.push((POINTY_UNIT_HEXAGON_XS[i] * radius + x as f32).round() as i16);
             ys.push(self.window_height -
-                    ((FLAT_UNIT_HEXAGON_YS[i] * radius + y as f32).round() as i16));
+                    ((POINTY_UNIT_HEXAGON_YS[i] * radius + y as f32).round() as i16));
         }
 
         self.renderer.filled_polygon(&xs, &ys, colour).unwrap();
