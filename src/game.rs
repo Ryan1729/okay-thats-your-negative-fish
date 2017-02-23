@@ -21,11 +21,16 @@ pub fn go() {
 
         rng = RNG.as_mut().unwrap();
     }
+    //floor((short_diameter / 2) / cos(PI/6))
     let side_length: u16 = 69;
 
     let mut grid = axial_hex::Grid::new(10);
     for _ in 0..48 {
-        grid.push(0xFF000000u32 | rng.gen::<u32>());
+        let c = 0xFF000000u32 | rng.gen::<u32>();
+        let u = rng.gen::<u16>() % 3;
+        let v = rng.gen::<u16>() % 2;
+
+        grid.push(((u, v), c));
     }
 
     let mut current_axial = (0, 0);
@@ -70,14 +75,14 @@ pub fn go() {
             };
         }
 
-        for ((x, y), &colour) in grid.indices() {
+        for ((x, y), &(texture_coords, colour)) in grid.indices() {
             let pixel_coords = add(axial_hex::axial_to_pixel_pointy(side_length,
                                                                     (x as i16, y as i16)),
                                    grid_offset);
 
 
             platform.draw_bitmap_hexagon(pixel_coords,
-                                         (0, 0),
+                                         texture_coords,
                                          if current_axial == (x as i16, y as i16) {
                                              0xFFFFFFFF
                                          } else {
@@ -85,7 +90,7 @@ pub fn go() {
                                          });
         }
 
-        for ((x, y), &colour) in grid.indices() {
+        for ((x, y), _) in grid.indices() {
             let pixel_coords = add(axial_hex::axial_to_pixel_pointy(side_length,
                                                                     (x as i16, y as i16)),
                                    grid_offset);
