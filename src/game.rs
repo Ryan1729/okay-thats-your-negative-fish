@@ -76,13 +76,13 @@ pub fn go() {
                                    grid_offset);
 
 
-            platform.draw_coloured_hexagon(pixel_coords,
-                                           side_length,
-                                           if current_axial == (x as i16, y as i16) {
-                                               0xFFFFFFFF
-                                           } else {
-                                               colour
-                                           });
+            platform.draw_bitmap_hexagon(pixel_coords,
+                                         (0, 0),
+                                         if current_axial == (x as i16, y as i16) {
+                                             0xFFFFFFFF
+                                         } else {
+                                             colour
+                                         });
         }
 
         for ((x, y), &colour) in grid.indices() {

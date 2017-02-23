@@ -22,6 +22,7 @@ pub struct Platform<'a> {
     anim_texture: sdl2::render::Texture,
     source_rect: sdl2::rect::Rect,
     dest_rect: sdl2::rect::Rect,
+    hex_dimensions: (u32, u32),
 }
 
 // handle the annoying Rect i32
@@ -30,6 +31,23 @@ macro_rules! rect(
         Rect::new($x as i32, $y as i32, $w as u32, $h as u32)
     )
 );
+
+macro_rules! red {
+    ($x:expr) => (($x & 0x000000FF) as u8)
+}
+macro_rules! green {
+    ($x:expr) => (($x & 0x0000FF00 >> 8) as u8)
+}
+macro_rules! blue {
+    ($x:expr) => (($x & 0x00FF0000 >> 16) as u8)
+}
+macro_rules! alpha {
+    ($x:expr) => (($x & 0xFF000000 >> 24) as u8)
+}
+
+fn color_from_u32(bits: u32) -> Color {
+    Color::RGBA(red!(bits), green!(bits), blue!(bits), alpha!(bits))
+}
 
 use std::f32::consts::PI;
 
@@ -83,6 +101,8 @@ impl<'a> Platform<'a> {
         let window_width = 800;
         let window_height = 600;
 
+        let hex_dimensions = (120, 140);
+
         let window = video_subsystem.window("rust-sdl2 demo: Video", window_width, window_height)
             .position_centered()
             .opengl()
@@ -99,8 +119,8 @@ impl<'a> Platform<'a> {
         anim_texture.set_color_mod(0, 255, 255);
 
         let center = Point::new((window_width / 2) as i32, (window_height / 2) as i32);
-        let source_rect = Rect::new(0, 0, 120, 140);
-        let mut dest_rect = Rect::new(0, 0, 120, 140);
+        let source_rect = Rect::new(0, 0, hex_dimensions.0, hex_dimensions.1);
+        let mut dest_rect = Rect::new(0, 0, hex_dimensions.0, hex_dimensions.1);
         dest_rect.center_on(center);
 
         // // Load a font
@@ -122,6 +142,7 @@ impl<'a> Platform<'a> {
             anim_texture: anim_texture,
             source_rect: source_rect,
             dest_rect: dest_rect,
+            hex_dimensions: hex_dimensions,
         }
     }
 
@@ -193,6 +214,29 @@ impl<'a> Platform<'a> {
         self.renderer.filled_polygon(&xs, &ys, colour).unwrap();
     }
 
+    pub fn draw_bitmap_hexagon(&mut self, (x, y): (i16, i16), (u, v): (u16, u16), colour: u32) {
+        let (w, h) = self.hex_dimensions;
+        let source_rect = rect!(u * w as u16, v * h as u16, w, h);
+        let mut dest_rect = rect!(0, 0, w, h);
+        dest_rect.center_on(Point::new(x as i32, (self.window_height - y) as i32));
+
+        if alpha!(colour) == 0 {
+            self.anim_texture.set_color_mod(255, 255, 255);
+        } else {
+            self.anim_texture.set_color_mod(red!(colour), green!(colour), blue!(colour))
+        }
+
+        self.renderer
+            .copy_ex(&self.anim_texture,
+                     Some(source_rect),
+                     Some(dest_rect),
+                     0.0,
+                     None,
+                     true,
+                     false)
+            .unwrap();
+    }
+
     pub fn get_events(&mut self) -> Vec<Event> {
         let mut result = Vec::new();
 
@@ -254,7 +298,6 @@ impl<'a> Platform<'a> {
                      true,
                      false)
             .unwrap();
-        self.renderer.present();
     }
 
     pub fn mouse_state(&self) -> MouseState {
@@ -280,12 +323,7 @@ pub struct MouseState {
     pub right: bool,
 }
 
-fn color_from_u32(bits: u32) -> Color {
-    Color::RGBA((bits & 0x000000FF) as u8,
-                (bits & 0x0000FF00 >> 8) as u8,
-                (bits & 0x00FF0000 >> 16) as u8,
-                (bits & 0xFF000000 >> 24) as u8)
-}
+
 
 #[derive(Debug)]
 pub enum Event {
