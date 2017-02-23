@@ -97,8 +97,8 @@ impl<'a> Platform<'a> {
         let anim_texture = renderer.load_texture(Path::new("assets/hexagonPack_sheet.png"))
             .unwrap();
         let center = Point::new((window_width / 2) as i32, (window_height / 2) as i32);
-        let source_rect = Rect::new(0, 0, 128, 82);
-        let mut dest_rect = Rect::new(0, 0, 128, 82);
+        let source_rect = Rect::new(0, 0, 120, 140);
+        let mut dest_rect = Rect::new(0, 0, 120, 140);
         dest_rect.center_on(center);
 
         // // Load a font
@@ -235,15 +235,19 @@ impl<'a> Platform<'a> {
     }
 
     pub fn animate(&mut self) {
-        let ticks = self.timer.ticks();
+        // let ticks = self.timer.ticks();
 
-        self.source_rect.set_x((128 * ((ticks / 100) % 6)) as i32);
-        self.renderer.clear();
+        let next_x = (self.source_rect.x() + 1) % 360;
+        self.source_rect.set_x(next_x);
+
+
+        self.renderer.draw_rect(self.dest_rect).unwrap();
+
         self.renderer
             .copy_ex(&self.anim_texture,
                      Some(self.source_rect),
                      Some(self.dest_rect),
-                     10.0,
+                     0.0,
                      None,
                      true,
                      false)
