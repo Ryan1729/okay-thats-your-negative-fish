@@ -94,8 +94,10 @@ impl<'a> Platform<'a> {
         renderer.set_draw_color(Color::RGB(250, 224, 55));
         renderer.clear();
 
-        let anim_texture = renderer.load_texture(Path::new("assets/hexagonPack_sheet.png"))
+        let mut anim_texture = renderer.load_texture(Path::new("assets/hexagonPack_sheet.png"))
             .unwrap();
+        anim_texture.set_color_mod(0, 255, 255);
+
         let center = Point::new((window_width / 2) as i32, (window_height / 2) as i32);
         let source_rect = Rect::new(0, 0, 120, 140);
         let mut dest_rect = Rect::new(0, 0, 120, 140);
