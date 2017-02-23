@@ -11,8 +11,7 @@ use sdl2::pixels::PixelFormatEnum;
 use std::path::Path;
 use sdl2::TimerSubsystem;
 use sdl2::rect::Point;
-
-use axial_hex;
+use sdl2::image::LoadTexture;
 
 pub struct Platform<'a> {
     pub renderer: Renderer<'a>,
@@ -95,9 +94,8 @@ impl<'a> Platform<'a> {
         renderer.set_draw_color(Color::RGB(250, 224, 55));
         renderer.clear();
 
-        let temp_surface =
-            sdl2::surface::Surface::load_bmp(Path::new("assets/hexagonPack_sheet.bmp")).unwrap();
-        let anim_texture = renderer.create_texture_from_surface(&temp_surface).unwrap();
+        let anim_texture = renderer.load_texture(Path::new("assets/hexagonPack_sheet.png"))
+            .unwrap();
         let center = Point::new((window_width / 2) as i32, (window_height / 2) as i32);
         let source_rect = Rect::new(0, 0, 128, 82);
         let mut dest_rect = Rect::new(0, 0, 128, 82);
