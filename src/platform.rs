@@ -13,13 +13,15 @@ use sdl2::TimerSubsystem;
 use sdl2::rect::Point;
 use sdl2::image::LoadTexture;
 
+use consts;
+
 pub struct Platform<'a> {
     pub renderer: Renderer<'a>,
     event_pump: EventPump,
     pub window_width: i16,
     pub window_height: i16,
     timer: TimerSubsystem,
-    anim_texture: sdl2::render::Texture,
+    spritesheet: sdl2::render::Texture,
     source_rect: sdl2::rect::Rect,
     dest_rect: sdl2::rect::Rect,
     hex_dimensions: (u32, u32),
@@ -33,65 +35,21 @@ macro_rules! rect(
 );
 
 macro_rules! red {
-    ($x:expr) => (($x & 0x000000FF) as u8)
+    ($x:expr) => ((($x & 0x00FF0000) >> 16) as u8)
 }
 macro_rules! green {
-    ($x:expr) => (($x & 0x0000FF00 >> 8) as u8)
+    ($x:expr) => ((($x & 0x0000FF00) >> 8) as u8)
 }
 macro_rules! blue {
-    ($x:expr) => (($x & 0x00FF0000 >> 16) as u8)
+    ($x:expr) => (($x & 0x000000FF) as u8)
 }
 macro_rules! alpha {
-    ($x:expr) => (($x & 0xFF000000 >> 24) as u8)
+    ($x:expr) => ((($x & 0xFF000000) >> 24) as u8)
 }
 
 fn color_from_u32(bits: u32) -> Color {
     Color::RGBA(red!(bits), green!(bits), blue!(bits), alpha!(bits))
 }
-
-use std::f32::consts::PI;
-
-const TAU_OVER_SIX: f32 = PI / 3f32;
-const TAU_OVER_TWELEVE: f32 = PI / 6f32;
-
-lazy_static!{
-    static ref FLAT_UNIT_HEXAGON_XS: [f32 ; 7] =
-        [f32::cos(TAU_OVER_SIX * 0f32),
-         f32::cos(TAU_OVER_SIX * 1f32),
-         f32::cos(TAU_OVER_SIX * 2f32),
-         f32::cos(TAU_OVER_SIX * 3f32),
-         f32::cos(TAU_OVER_SIX * 4f32),
-         f32::cos(TAU_OVER_SIX * 5f32),
-         f32::cos(TAU_OVER_SIX * 6f32)];
-
-     static ref FLAT_UNIT_HEXAGON_YS: [f32 ; 7] =
-         [f32::sin(TAU_OVER_SIX * 0f32),
-          f32::sin(TAU_OVER_SIX * 1f32),
-          f32::sin(TAU_OVER_SIX * 2f32),
-          f32::sin(TAU_OVER_SIX * 3f32),
-          f32::sin(TAU_OVER_SIX * 4f32),
-          f32::sin(TAU_OVER_SIX * 5f32),
-          f32::sin(TAU_OVER_SIX * 6f32)];
-
-    static ref POINTY_UNIT_HEXAGON_XS: [f32 ; 7] =
-        [f32::cos(TAU_OVER_TWELEVE * 1f32),
-         f32::cos(TAU_OVER_TWELEVE * 3f32),
-         f32::cos(TAU_OVER_TWELEVE * 5f32),
-         f32::cos(TAU_OVER_TWELEVE * 7f32),
-         f32::cos(TAU_OVER_TWELEVE * 9f32),
-         f32::cos(TAU_OVER_TWELEVE * 11f32),
-         f32::cos(TAU_OVER_TWELEVE * 13f32)];
-
-    static ref POINTY_UNIT_HEXAGON_YS: [f32 ; 7] =
-        [f32::sin(TAU_OVER_TWELEVE * 1f32),
-         f32::sin(TAU_OVER_TWELEVE * 3f32),
-         f32::sin(TAU_OVER_TWELEVE * 5f32),
-         f32::sin(TAU_OVER_TWELEVE * 7f32),
-         f32::sin(TAU_OVER_TWELEVE * 9f32),
-         f32::sin(TAU_OVER_TWELEVE * 11f32),
-         f32::sin(TAU_OVER_TWELEVE * 13f32)];
-}
-
 
 impl<'a> Platform<'a> {
     pub fn new() -> Self {
@@ -114,9 +72,8 @@ impl<'a> Platform<'a> {
         renderer.set_draw_color(Color::RGB(250, 224, 55));
         renderer.clear();
 
-        let mut anim_texture = renderer.load_texture(Path::new("assets/hexagonPack_sheet.png"))
+        let mut spritesheet = renderer.load_texture(Path::new("assets/hexagonPack_sheet.png"))
             .unwrap();
-        anim_texture.set_color_mod(0, 255, 255);
 
         let center = Point::new((window_width / 2) as i32, (window_height / 2) as i32);
         let source_rect = Rect::new(0, 0, hex_dimensions.0, hex_dimensions.1);
@@ -139,7 +96,7 @@ impl<'a> Platform<'a> {
             window_width: window_width as i16,
             window_height: window_height as i16,
             timer: timer,
-            anim_texture: anim_texture,
+            spritesheet: spritesheet,
             source_rect: source_rect,
             dest_rect: dest_rect,
             hex_dimensions: hex_dimensions,
@@ -149,6 +106,7 @@ impl<'a> Platform<'a> {
     pub fn flip_frame(&mut self) {
         self.renderer.present();
         self.renderer.set_draw_color(Color::RGB(250, 224, 55));
+        self.spritesheet.set_color_mod(255, 255, 255);
     }
 
     pub fn render_text(&mut self, text: &str) {
@@ -182,23 +140,9 @@ impl<'a> Platform<'a> {
 
         r.set_draw_color(old_colour);
     }
-    pub fn draw_box_upper_left(&mut self,
-                               (x, y): (i16, i16),
-                               width: u16,
-                               height: u16,
-                               colour: u32) {
-        let ref mut r = self.renderer;
 
-        let old_colour = r.draw_color();
-        r.set_draw_color(color_from_u32(colour));
 
-        r.draw_rect(rect!(x, self.window_height - y, width, height))
-            .unwrap();
-
-        r.set_draw_color(old_colour);
-    }
-
-    pub fn draw_coloured_hexagon(&mut self, (x, y): (i16, i16), side_length: u16, colour: u32) {
+    pub fn _draw_coloured_hexagon(&mut self, (x, y): (i16, i16), side_length: u16, colour: u32) {
         let mut xs: Vec<i16> = Vec::new();
         let mut ys: Vec<i16> = Vec::new();
 
@@ -206,28 +150,31 @@ impl<'a> Platform<'a> {
         let radius = side_length as f32;
 
         for i in 0..6 {
-            xs.push((POINTY_UNIT_HEXAGON_XS[i] * radius + x as f32).round() as i16);
+            xs.push((consts::POINTY_UNIT_HEXAGON_XS[i] * radius + x as f32).round() as i16);
             ys.push(self.window_height -
-                    ((POINTY_UNIT_HEXAGON_YS[i] * radius + y as f32).round() as i16));
+                    ((consts::POINTY_UNIT_HEXAGON_YS[i] * radius + y as f32).round() as i16));
         }
 
         self.renderer.filled_polygon(&xs, &ys, colour).unwrap();
     }
 
-    pub fn draw_bitmap_hexagon(&mut self, (x, y): (i16, i16), (u, v): (u16, u16), colour: u32) {
+    pub fn draw_bitmap_hexagon(&mut self,
+                               (x, y): (i16, i16),
+                               (u, v): (u16, u16),
+                               mut colour: u32) {
         let (w, h) = self.hex_dimensions;
         let source_rect = rect!(u * w as u16, v * h as u16, w, h);
         let mut dest_rect = rect!(0, 0, w, h);
         dest_rect.center_on(Point::new(x as i32, (self.window_height - y) as i32));
 
         if alpha!(colour) == 0 {
-            self.anim_texture.set_color_mod(255, 255, 255);
+            self.spritesheet.set_color_mod(255, 255, 255);
         } else {
-            self.anim_texture.set_color_mod(red!(colour), green!(colour), blue!(colour))
+            self.spritesheet.set_color_mod(red!(colour), green!(colour), blue!(colour))
         }
 
         self.renderer
-            .copy_ex(&self.anim_texture,
+            .copy_ex(&self.spritesheet,
                      Some(source_rect),
                      Some(dest_rect),
                      0.0,
@@ -286,11 +233,11 @@ impl<'a> Platform<'a> {
         let next_x = (self.source_rect.x() + 1) % 360;
         self.source_rect.set_x(next_x);
 
-
         self.renderer.draw_rect(self.dest_rect).unwrap();
 
+        self.spritesheet.set_color_mod(255, 255, 255);
         self.renderer
-            .copy_ex(&self.anim_texture,
+            .copy_ex(&self.spritesheet,
                      Some(self.source_rect),
                      Some(self.dest_rect),
                      0.0,

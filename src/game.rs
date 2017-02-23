@@ -21,10 +21,10 @@ pub fn go() {
 
         rng = RNG.as_mut().unwrap();
     }
-    let side_length: u16 = 48;
+    let side_length: u16 = 69;
 
     let mut grid = axial_hex::Grid::new(10);
-    for _ in 0..64 {
+    for _ in 0..48 {
         grid.push(0xFF000000u32 | rng.gen::<u32>());
     }
 
@@ -92,28 +92,12 @@ pub fn go() {
 
 
 
-            let c = 0xFFFF0000 | ((y & 1) * 0xFFFF) as u32;
+            let c = 0xFF000000 | ((y & 1) * 0xFFFFFF) as u32;
             platform.draw_box(pixel_coords,
                               axial_hex::short_diameter(side_length),
                               axial_hex::long_diameter(side_length),
                               c)
         }
-
-        let mouse_state = platform.mouse_state();
-        let window_height = platform.window_height;
-
-        // platform.render_to_buffer(&|buffer: &mut [u8], pitch: usize| for y in 0..256 {
-        //     for x in 0..256 {
-        //         let (ax, ay) = axial_hex::pixel_to_axial_pointy(side_length,
-        //                                                  add((x as i16, y as i16),
-        //                                                      (mouse_state.x as i16,
-        //                                                       mouse_state.y as i16)));
-        //         let offset = y * pitch + x * 3;
-        //         buffer[offset + 0] = (2 * ax) as u8;
-        //         buffer[offset + 1] = (2 * ay) as u8;
-        //         buffer[offset + 2] = 0;
-        //     }
-        // });
 
         platform.animate();
 
