@@ -5,7 +5,6 @@ use sdl2::pixels::Color;
 use sdl2::event::Event as PlatformEvent;
 use sdl2::render::Renderer;
 use sdl2::EventPump;
-use sdl2::gfx::primitives::DrawRenderer;
 use sdl2::rect::Rect;
 use sdl2::pixels::PixelFormatEnum;
 use std::path::Path;
@@ -139,23 +138,6 @@ impl<'a> Platform<'a> {
             .unwrap();
 
         r.set_draw_color(old_colour);
-    }
-
-
-    pub fn _draw_coloured_hexagon(&mut self, (x, y): (i16, i16), side_length: u16, colour: u32) {
-        let mut xs: Vec<i16> = Vec::new();
-        let mut ys: Vec<i16> = Vec::new();
-
-
-        let radius = side_length as f32;
-
-        for i in 0..6 {
-            xs.push((consts::POINTY_UNIT_HEXAGON_XS[i] * radius + x as f32).round() as i16);
-            ys.push(self.window_height -
-                    ((consts::POINTY_UNIT_HEXAGON_YS[i] * radius + y as f32).round() as i16));
-        }
-
-        self.renderer.filled_polygon(&xs, &ys, colour).unwrap();
     }
 
     pub fn draw_bitmap_hexagon(&mut self,
