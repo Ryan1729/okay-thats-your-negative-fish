@@ -69,11 +69,13 @@ fn linear_to_axial(width: usize, i: usize) -> (usize, usize) {
 
 use std::f32::consts::PI;
 
+//round() leaves gaps between hexagaons in some cases
+//will we always want he ceil version?
 pub fn corner_height(side_length: u16) -> u16 {
-    (f32::sin(PI / 6f32) * side_length as f32) as u16
+    (f32::sin(PI / 6f32) * side_length as f32).ceil() as u16
 }
 pub fn short_radius(side_length: u16) -> u16 {
-    (f32::cos(PI / 6f32) * side_length as f32) as u16
+    (f32::cos(PI / 6f32) * side_length as f32).ceil() as u16
 }
 pub fn long_diameter(side_length: u16) -> u16 {
     side_length + 2 * corner_height(side_length)

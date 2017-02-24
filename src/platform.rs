@@ -12,7 +12,7 @@ use sdl2::TimerSubsystem;
 use sdl2::rect::Point;
 use sdl2::image::LoadTexture;
 
-use consts;
+use axial_hex;
 
 pub struct Platform<'a> {
     pub renderer: Renderer<'a>,
@@ -71,7 +71,7 @@ impl<'a> Platform<'a> {
         renderer.set_draw_color(Color::RGB(250, 224, 55));
         renderer.clear();
 
-        let mut spritesheet = renderer.load_texture(Path::new("assets/hexagon-3to3.png"))
+        let spritesheet = renderer.load_texture(Path::new("assets/hexagon-3to3.png"))
             .unwrap();
 
         let center = Point::new((window_width / 2) as i32, (window_height / 2) as i32);
@@ -143,10 +143,14 @@ impl<'a> Platform<'a> {
     pub fn draw_bitmap_hexagon(&mut self,
                                (x, y): (i16, i16),
                                (u, v): (u16, u16),
+                               side_length: u16,
                                mut colour: u32) {
         let (w, h) = self.hex_dimensions;
         let source_rect = rect!(u * w as u16, v * h as u16, w, h);
-        let mut dest_rect = rect!(0, 0, w, h);
+        let mut dest_rect = rect!(0,
+                                  0,
+                                  axial_hex::short_diameter(side_length),
+                                  axial_hex::long_diameter(side_length));
         dest_rect.center_on(Point::new(x as i32, (self.window_height - y) as i32));
 
         if alpha!(colour) == 0 {
@@ -183,7 +187,6 @@ impl<'a> Platform<'a> {
 
         result
     }
-
 
     pub fn render_to_buffer(&mut self, render_commands: &Fn(&mut [u8], usize)) {
 

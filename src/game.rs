@@ -22,11 +22,11 @@ pub fn go() {
         rng = RNG.as_mut().unwrap();
     }
     //floor((short_diameter / 2) / cos(PI/6))
-    let side_length: u16 = 69;
+    let side_length: u16 = 34;
 
     let mut grid = axial_hex::Grid::new(10);
     for _ in 0..48 {
-        let u = rng.gen::<u16>() % 3;
+        let u = rng.gen::<u16>() % 4;
         let v = rng.gen::<u16>() % 2;
 
         grid.push((u, v));
@@ -34,7 +34,7 @@ pub fn go() {
 
     let mut current_axial = (0, 0);
 
-    let mut grid_offset = (0, 50);
+    let mut grid_offset = (50, 50);
 
     let args: Vec<String> = std::env::args().collect();
 
@@ -79,6 +79,7 @@ pub fn go() {
 
             platform.draw_bitmap_hexagon(pixel_coords,
                                          texture_coords,
+                                         side_length,
                                          if current_axial == (x as i16, y as i16) {
                                              0xFFFFFFFF
                                          } else {
