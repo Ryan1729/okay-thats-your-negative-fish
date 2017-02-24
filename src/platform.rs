@@ -71,7 +71,7 @@ impl<'a> Platform<'a> {
         renderer.set_draw_color(Color::RGB(250, 224, 55));
         renderer.clear();
 
-        let mut spritesheet = renderer.load_texture(Path::new("assets/hexagonPack_sheet.png"))
+        let mut spritesheet = renderer.load_texture(Path::new("assets/hexagon-3to3.png"))
             .unwrap();
 
         let center = Point::new((window_width / 2) as i32, (window_height / 2) as i32);
@@ -156,13 +156,7 @@ impl<'a> Platform<'a> {
         }
 
         self.renderer
-            .copy_ex(&self.spritesheet,
-                     Some(source_rect),
-                     Some(dest_rect),
-                     0.0,
-                     None,
-                     true,
-                     false)
+            .copy(&self.spritesheet, Some(source_rect), Some(dest_rect))
             .unwrap();
     }
 
@@ -206,26 +200,6 @@ impl<'a> Platform<'a> {
             .copy(&texture,
                   None,
                   Some(Rect::new(platform_mouse_state.x(), platform_mouse_state.y(), 256, 256)))
-            .unwrap();
-    }
-
-    pub fn animate(&mut self) {
-        // let ticks = self.timer.ticks();
-
-        let next_x = (self.source_rect.x() + 1) % 360;
-        self.source_rect.set_x(next_x);
-
-        self.renderer.draw_rect(self.dest_rect).unwrap();
-
-        self.spritesheet.set_color_mod(255, 255, 255);
-        self.renderer
-            .copy_ex(&self.spritesheet,
-                     Some(self.source_rect),
-                     Some(self.dest_rect),
-                     0.0,
-                     None,
-                     true,
-                     false)
             .unwrap();
     }
 
