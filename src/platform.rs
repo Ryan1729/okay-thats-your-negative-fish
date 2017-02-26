@@ -13,6 +13,7 @@ use sdl2::rect::Point;
 use sdl2::image::LoadTexture;
 
 use axial_hex;
+use consts;
 
 pub struct Platform<'a> {
     pub renderer: Renderer<'a>,
@@ -158,6 +159,24 @@ impl<'a> Platform<'a> {
         } else {
             self.spritesheet.set_color_mod(red!(colour), green!(colour), blue!(colour))
         }
+
+        self.renderer
+            .copy(&self.spritesheet, Some(source_rect), Some(dest_rect))
+            .unwrap();
+    }
+
+    pub fn draw_piece(&mut self, (x, y): (i16, i16), (u, v): (u16, u16), hex_side_length: u16) {
+        let (w, h) = consts::PIECE_DIMENSIONS;
+        let source_rect = rect!(u, v, w, h);
+        let mut dest_rect =
+            rect!(0,
+                  0,
+                  (axial_hex::short_diameter(hex_side_length) as f32 *
+                   (w as f32 / axial_hex::short_diameter(34) as f32)) as u16,
+                  (axial_hex::long_diameter(hex_side_length) as f32 *
+                   (h as f32 / axial_hex::long_diameter(34) as f32)) as u16);
+
+        dest_rect.center_on(Point::new(x as i32, (self.window_height - y) as i32));
 
         self.renderer
             .copy(&self.spritesheet, Some(source_rect), Some(dest_rect))

@@ -41,3 +41,5 @@ lazy_static!{
          f32::sin(TAU_OVER_TWELEVE * 11f32),
          f32::sin(TAU_OVER_TWELEVE * 13f32)];
 }
+
+pub const PIECE_DIMENSIONS: (u16, u16) = (28, 52);

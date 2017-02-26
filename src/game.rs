@@ -1,10 +1,11 @@
 extern crate rand;
 extern crate sdl2;
 
-use self::rand::{Rng, SeedableRng, StdRng};
+use self::rand::{Rng, SeedableRng, StdRng, Rand};
 use platform::Platform;
 use platform::Event;
 use axial_hex;
+use consts;
 
 static mut RNG: Option<StdRng> = None;
 use std;
@@ -22,14 +23,16 @@ pub fn go() {
         rng = RNG.as_mut().unwrap();
     }
     //floor((short_diameter / 2) / cos(PI/6))
-    let side_length: u16 = 34;
+    let side_length: u16 = 69; //34;
 
     let mut grid = axial_hex::Grid::new(10);
     for _ in 0..48 {
         let u = rng.gen::<u16>() % 4;
         let v = rng.gen::<u16>() % 2;
+        let piece = rng.gen::<PieceState>();
 
-        grid.push((u, v));
+
+        grid.push(((u, v), piece));
     }
 
     let mut current_axial = (0, 0);
@@ -71,7 +74,7 @@ pub fn go() {
             };
         }
 
-        for ((x, y), &texture_coords) in grid.indices() {
+        for ((x, y), &(texture_coords, ref piece)) in grid.indices() {
             let pixel_coords = add(axial_hex::axial_to_pixel_pointy(side_length,
                                                                     (x as i16, y as i16)),
                                    grid_offset);
@@ -85,6 +88,11 @@ pub fn go() {
                                          } else {
                                              0xFFDDDDDD
                                          });
+
+
+            platform.draw_piece(pixel_coords, piece_uv(piece), side_length);
+
+
         }
 
         platform.flip_frame();
@@ -99,4 +107,36 @@ fn add<T: Add<Output = T>>((x1, y1): (T, T), (x2, y2): (T, T)) -> (T, T) {
 use std::ops::Sub;
 fn sub<T: Sub<Output = T>>((x1, y1): (T, T), (x2, y2): (T, T)) -> (T, T) {
     (x1 - x2, y1 - y2)
+}
+
+#[derive(Debug)]
+pub enum PieceState {
+    NoPiece,
+    Blue,
+    Black,
+    Orange,
+}
+use self::PieceState::*;
+
+impl Rand for PieceState {
+    fn rand<R: Rng>(rng: &mut R) -> Self {
+        match rng.gen::<usize>() % 4 {
+            1 => Blue,
+            2 => Black,
+            3 => Orange,
+            _ => NoPiece,
+        }
+    }
+}
+
+fn piece_uv(piece: &PieceState) -> (u16, u16) {
+    let offset = match *piece {
+        NoPiece => 0,
+        Blue => 1,
+        Black => 2,
+        Orange => 3,
+    };
+
+    (offset * consts::PIECE_DIMENSIONS.0, 280)
+
 }
