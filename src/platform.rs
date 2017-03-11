@@ -145,18 +145,22 @@ impl<'a> Platform<'a> {
         r.set_draw_color(old_colour);
     }
 
-    pub fn draw_hexagon(&mut self,
-                        (x, y): (i16, i16),
-                        tile_type: u16,
-                        side_length: u16,
-                        mut colour: u32) {
+    pub unsafe fn draw_hexagon(&mut self,
+                               (grid_x, grid_y): (i16, i16),
+                               tile_type: u16,
+                               mut colour: u32) {
+        let (x, y) = add(axial_hex::axial_to_pixel_pointy(common::side_length,
+                                                          (grid_x as i16, grid_y as i16)),
+                         common::grid_offset);
+
+
         let (u, v) = (tile_type / 4, tile_type % 2);
         let (w, h) = self.hex_dimensions;
         let source_rect = rect!(u * w as u16, v * h as u16, w, h);
         let mut dest_rect = rect!(0,
                                   0,
-                                  axial_hex::short_diameter(side_length),
-                                  axial_hex::long_diameter(side_length));
+                                  axial_hex::short_diameter(common::side_length),
+                                  axial_hex::long_diameter(common::side_length));
         dest_rect.center_on(Point::new(x as i32, (self.window_height - y) as i32));
 
         if alpha!(colour) == 0 {
@@ -170,19 +174,16 @@ impl<'a> Platform<'a> {
             .unwrap();
     }
 
-    pub fn draw_piece(&mut self,
-                      (x, y): (i16, i16),
-                      piece_state: &PieceState,
-                      hex_side_length: u16) {
+    pub unsafe fn draw_piece(&mut self, (x, y): (i16, i16), piece_state: &PieceState) {
         let (u, v) = piece_uv(&piece_state);
         let (w, h) = consts::PIECE_DIMENSIONS;
         let source_rect = rect!(u, v, w, h);
         let mut dest_rect =
             rect!(0,
                   0,
-                  (axial_hex::short_diameter(hex_side_length) as f32 *
+                  (axial_hex::short_diameter(common::side_length) as f32 *
                    (w as f32 / axial_hex::short_diameter(34) as f32)) as u16,
-                  (axial_hex::long_diameter(hex_side_length) as f32 *
+                  (axial_hex::long_diameter(common::side_length) as f32 *
                    (h as f32 / axial_hex::long_diameter(34) as f32)) as u16);
 
         dest_rect.center_on(Point::new(x as i32, (self.window_height - y) as i32));
@@ -202,12 +203,16 @@ impl<'a> Platform<'a> {
                 { /*keycode: Some(Keycode::Escape),*/
                      .. } => {result.push(Quit)},
                 PlatformEvent::MouseButtonUp{ x, y, .. } =>
-                    {result.push(
-                        Event::MouseUp{ x: x as i16, y: self.window_height - y as i16 });}
+                    {
+                        let (ax, ay)  = unsafe{ get_axial (x as i16, self.window_height - y as i16)};
+                        result.push(
+                        Event::MouseUp{ x: ax, y:ay  });}
 
                 PlatformEvent::MouseMotion{ x, y, .. } =>
-                    {result.push(
-                        Event::MouseMove{ x: x as i16, y: self.window_height - y as i16 });}
+                    {
+                        let (ax, ay)  = unsafe{ get_axial (x as i16, self.window_height - y as i16)};
+                        result.push(
+                        Event::MouseMove{ x: ax, y:ay  });}
                 _ => {}
                 // e => {println!("{:?}", e);}
             }
@@ -245,6 +250,20 @@ impl<'a> Platform<'a> {
             right: platform_mouse_state.right(),
         }
     }
+}
+
+unsafe fn get_axial(x: i16, y: i16) -> (i16, i16) {
+    axial_hex::pixel_to_axial_pointy(common::side_length, sub((x, y), common::grid_offset))
+}
+
+use std::ops::Add;
+fn add<T: Add<Output = T>>((x1, y1): (T, T), (x2, y2): (T, T)) -> (T, T) {
+    (x1 + x2, y1 + y2)
+}
+
+use std::ops::Sub;
+fn sub<T: Sub<Output = T>>((x1, y1): (T, T), (x2, y2): (T, T)) -> (T, T) {
+    (x1 - x2, y1 - y2)
 }
 
 fn piece_uv(piece: &PieceState) -> (u16, u16) {
