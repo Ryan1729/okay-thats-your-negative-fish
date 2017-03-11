@@ -145,13 +145,10 @@ impl<'a> Platform<'a> {
         r.set_draw_color(old_colour);
     }
 
-    pub unsafe fn draw_hexagon(&mut self,
-                               (grid_x, grid_y): (i16, i16),
-                               tile_type: u16,
-                               mut colour: u32) {
+    pub fn draw_hexagon(&mut self, (grid_x, grid_y): (i16, i16), tile_type: u16, colour: u32) {
         let (x, y) = add(axial_hex::axial_to_pixel_pointy(common::side_length,
                                                           (grid_x as i16, grid_y as i16)),
-                         common::grid_offset);
+                         unsafe { common::grid_offset });
 
 
         let (u, v) = (tile_type / 4, tile_type % 2);
@@ -174,7 +171,10 @@ impl<'a> Platform<'a> {
             .unwrap();
     }
 
-    pub unsafe fn draw_piece(&mut self, (x, y): (i16, i16), piece_state: &PieceState) {
+    pub fn draw_piece(&mut self, (grid_x, grid_y): (i16, i16), piece_state: &PieceState) {
+        let (x, y) = add(axial_hex::axial_to_pixel_pointy(common::side_length,
+                                                          (grid_x as i16, grid_y as i16)),
+                         unsafe { common::grid_offset });
         let (u, v) = piece_uv(&piece_state);
         let (w, h) = consts::PIECE_DIMENSIONS;
         let source_rect = rect!(u, v, w, h);
@@ -204,13 +204,13 @@ impl<'a> Platform<'a> {
                      .. } => {result.push(Quit)},
                 PlatformEvent::MouseButtonUp{ x, y, .. } =>
                     {
-                        let (ax, ay)  = unsafe{ get_axial (x as i16, self.window_height - y as i16)};
+                        let (ax, ay)  =get_axial (x as i16, self.window_height - y as i16);
                         result.push(
                         Event::MouseUp{ x: ax, y:ay  });}
 
                 PlatformEvent::MouseMotion{ x, y, .. } =>
                     {
-                        let (ax, ay)  = unsafe{ get_axial (x as i16, self.window_height - y as i16)};
+                        let (ax, ay)  = get_axial (x as i16, self.window_height - y as i16);
                         result.push(
                         Event::MouseMove{ x: ax, y:ay  });}
                 _ => {}
@@ -252,8 +252,9 @@ impl<'a> Platform<'a> {
     }
 }
 
-unsafe fn get_axial(x: i16, y: i16) -> (i16, i16) {
-    axial_hex::pixel_to_axial_pointy(common::side_length, sub((x, y), common::grid_offset))
+fn get_axial(x: i16, y: i16) -> (i16, i16) {
+    axial_hex::pixel_to_axial_pointy(common::side_length,
+                                     sub((x, y), unsafe { common::grid_offset }))
 }
 
 use std::ops::Add;
