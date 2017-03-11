@@ -7,6 +7,6 @@ pub enum PieceState {
     Orange,
 }
 
-pub static mut grid_offset: (i16, i16) = (50, 50);
+pub static mut GRID_OFFSET: (i16, i16) = (50, 50);
 
-pub const side_length: u16 = 69;
+pub const SIDE_LENGTH: u16 = 69;

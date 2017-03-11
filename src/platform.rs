@@ -146,9 +146,9 @@ impl<'a> Platform<'a> {
     }
 
     pub fn draw_hexagon(&mut self, (grid_x, grid_y): (i16, i16), tile_type: u16, colour: u32) {
-        let (x, y) = add(axial_hex::axial_to_pixel_pointy(common::side_length,
+        let (x, y) = add(axial_hex::axial_to_pixel_pointy(common::SIDE_LENGTH,
                                                           (grid_x as i16, grid_y as i16)),
-                         unsafe { common::grid_offset });
+                         unsafe { common::GRID_OFFSET });
 
 
         let (u, v) = (tile_type / 4, tile_type % 2);
@@ -156,8 +156,8 @@ impl<'a> Platform<'a> {
         let source_rect = rect!(u * w as u16, v * h as u16, w, h);
         let mut dest_rect = rect!(0,
                                   0,
-                                  axial_hex::short_diameter(common::side_length),
-                                  axial_hex::long_diameter(common::side_length));
+                                  axial_hex::short_diameter(common::SIDE_LENGTH),
+                                  axial_hex::long_diameter(common::SIDE_LENGTH));
         dest_rect.center_on(Point::new(x as i32, (self.window_height - y) as i32));
 
         if alpha!(colour) == 0 {
@@ -172,18 +172,18 @@ impl<'a> Platform<'a> {
     }
 
     pub fn draw_piece(&mut self, (grid_x, grid_y): (i16, i16), piece_state: &PieceState) {
-        let (x, y) = add(axial_hex::axial_to_pixel_pointy(common::side_length,
+        let (x, y) = add(axial_hex::axial_to_pixel_pointy(common::SIDE_LENGTH,
                                                           (grid_x as i16, grid_y as i16)),
-                         unsafe { common::grid_offset });
+                         unsafe { common::GRID_OFFSET });
         let (u, v) = piece_uv(&piece_state);
         let (w, h) = consts::PIECE_DIMENSIONS;
         let source_rect = rect!(u, v, w, h);
         let mut dest_rect =
             rect!(0,
                   0,
-                  (axial_hex::short_diameter(common::side_length) as f32 *
+                  (axial_hex::short_diameter(common::SIDE_LENGTH) as f32 *
                    (w as f32 / axial_hex::short_diameter(34) as f32)) as u16,
-                  (axial_hex::long_diameter(common::side_length) as f32 *
+                  (axial_hex::long_diameter(common::SIDE_LENGTH) as f32 *
                    (h as f32 / axial_hex::long_diameter(34) as f32)) as u16);
 
         dest_rect.center_on(Point::new(x as i32, (self.window_height - y) as i32));
@@ -253,8 +253,8 @@ impl<'a> Platform<'a> {
 }
 
 fn get_axial(x: i16, y: i16) -> (i16, i16) {
-    axial_hex::pixel_to_axial_pointy(common::side_length,
-                                     sub((x, y), unsafe { common::grid_offset }))
+    axial_hex::pixel_to_axial_pointy(common::SIDE_LENGTH,
+                                     sub((x, y), unsafe { common::GRID_OFFSET }))
 }
 
 use std::ops::Add;

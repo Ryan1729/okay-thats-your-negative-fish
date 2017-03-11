@@ -8,7 +8,7 @@ use axial_hex;
 use consts;
 
 use common;
-use common::grid_offset;
+use common::GRID_OFFSET;
 use common::PieceState;
 use common::PieceState::*;
 
@@ -46,11 +46,11 @@ pub unsafe fn go() {
     if args.len() >= 3 {
         match (args[1].parse(), args[2].parse()) {
             (Ok(x), Ok(y)) => {
-                grid_offset = (x, y);
-                println!("set grid_offset to {:?}", grid_offset);
+                GRID_OFFSET = (x, y);
+                println!("set GRID_OFFSET to {:?}", GRID_OFFSET);
             }
             _ => {
-                println!("could not parse grid_offset.");
+                println!("could not parse GRID_OFFSET.");
                 println!("recieved {:?}", args);
             }
         }
