@@ -2,8 +2,8 @@ extern crate rand;
 extern crate sdl2;
 
 use self::rand::{Rng, SeedableRng, StdRng, Rand};
-use platform::Platform;
-use platform::Event;
+use sdl2_platform::SDL2_Platform as Platform;
+use sdl2_platform::Event;
 use axial_hex;
 use consts;
 

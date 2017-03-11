@@ -19,7 +19,7 @@ use common;
 use common::PieceState;
 use common::PieceState::*;
 
-pub struct Platform<'a> {
+pub struct SDL2_Platform<'a> {
     pub renderer: Renderer<'a>,
     event_pump: EventPump,
     pub window_width: i16,
@@ -55,7 +55,7 @@ fn color_from_u32(bits: u32) -> Color {
     Color::RGBA(red!(bits), green!(bits), blue!(bits), alpha!(bits))
 }
 
-impl<'a> Platform<'a> {
+impl<'a> SDL2_Platform<'a> {
     pub fn new() -> Self {
         let sdl_context = sdl2::init().unwrap();
         let video_subsystem = sdl_context.video().unwrap();
@@ -94,7 +94,7 @@ impl<'a> Platform<'a> {
 
         let timer = sdl_context.timer().unwrap();
 
-        Platform {
+        SDL2_Platform {
             renderer: renderer,
             event_pump: event_pump,
             window_width: window_width as i16,
