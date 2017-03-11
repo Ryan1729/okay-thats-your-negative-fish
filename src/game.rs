@@ -7,6 +7,11 @@ use platform::Event;
 use axial_hex;
 use consts;
 
+use common;
+use common::PieceState;
+use common::PieceState::*;
+
+
 static mut RNG: Option<StdRng> = None;
 use std;
 
@@ -27,12 +32,11 @@ pub fn go() {
 
     let mut grid = axial_hex::Grid::new(10);
     for _ in 0..48 {
-        let u = rng.gen::<u16>() % 4;
-        let v = rng.gen::<u16>() % 2;
+        let tile = rng.gen::<u16>() % 8;
         let piece = rng.gen::<PieceState>();
 
 
-        grid.push(((u, v), piece));
+        grid.push((tile, piece));
     }
 
     let mut current_axial = (0, 0);
@@ -74,23 +78,23 @@ pub fn go() {
             };
         }
 
-        for ((x, y), &(texture_coords, ref piece)) in grid.indices() {
+        for ((x, y), &(tile_type, ref piece)) in grid.indices() {
             let pixel_coords = add(axial_hex::axial_to_pixel_pointy(side_length,
                                                                     (x as i16, y as i16)),
                                    grid_offset);
 
 
-            platform.draw_bitmap_hexagon(pixel_coords,
-                                         texture_coords,
-                                         side_length,
-                                         if current_axial == (x as i16, y as i16) {
-                                             0xFFFFFFFF
-                                         } else {
-                                             0xFFDDDDDD
-                                         });
+            platform.draw_hexagon(pixel_coords,
+                                  tile_type,
+                                  side_length,
+                                  if current_axial == (x as i16, y as i16) {
+                                      0xFFFFFFFF
+                                  } else {
+                                      0xFFDDDDDD
+                                  });
 
 
-            platform.draw_piece(pixel_coords, piece_uv(piece), side_length);
+            platform.draw_piece(pixel_coords, piece, side_length);
 
 
         }
@@ -109,15 +113,6 @@ fn sub<T: Sub<Output = T>>((x1, y1): (T, T), (x2, y2): (T, T)) -> (T, T) {
     (x1 - x2, y1 - y2)
 }
 
-#[derive(Debug)]
-pub enum PieceState {
-    NoPiece,
-    Blue,
-    Black,
-    Orange,
-}
-use self::PieceState::*;
-
 impl Rand for PieceState {
     fn rand<R: Rng>(rng: &mut R) -> Self {
         match rng.gen::<usize>() % 4 {
@@ -127,16 +122,4 @@ impl Rand for PieceState {
             _ => NoPiece,
         }
     }
-}
-
-fn piece_uv(piece: &PieceState) -> (u16, u16) {
-    let offset = match *piece {
-        NoPiece => 0,
-        Blue => 1,
-        Black => 2,
-        Orange => 3,
-    };
-
-    (offset * consts::PIECE_DIMENSIONS.0, 280)
-
 }

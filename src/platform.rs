@@ -15,6 +15,10 @@ use sdl2::image::LoadTexture;
 use axial_hex;
 use consts;
 
+use common;
+use common::PieceState;
+use common::PieceState::*;
+
 pub struct Platform<'a> {
     pub renderer: Renderer<'a>,
     event_pump: EventPump,
@@ -141,11 +145,12 @@ impl<'a> Platform<'a> {
         r.set_draw_color(old_colour);
     }
 
-    pub fn draw_bitmap_hexagon(&mut self,
-                               (x, y): (i16, i16),
-                               (u, v): (u16, u16),
-                               side_length: u16,
-                               mut colour: u32) {
+    pub fn draw_hexagon(&mut self,
+                        (x, y): (i16, i16),
+                        tile_type: u16,
+                        side_length: u16,
+                        mut colour: u32) {
+        let (u, v) = (tile_type / 4, tile_type % 2);
         let (w, h) = self.hex_dimensions;
         let source_rect = rect!(u * w as u16, v * h as u16, w, h);
         let mut dest_rect = rect!(0,
@@ -165,7 +170,11 @@ impl<'a> Platform<'a> {
             .unwrap();
     }
 
-    pub fn draw_piece(&mut self, (x, y): (i16, i16), (u, v): (u16, u16), hex_side_length: u16) {
+    pub fn draw_piece(&mut self,
+                      (x, y): (i16, i16),
+                      piece_state: &PieceState,
+                      hex_side_length: u16) {
+        let (u, v) = piece_uv(&piece_state);
         let (w, h) = consts::PIECE_DIMENSIONS;
         let source_rect = rect!(u, v, w, h);
         let mut dest_rect =
@@ -238,6 +247,17 @@ impl<'a> Platform<'a> {
     }
 }
 
+fn piece_uv(piece: &PieceState) -> (u16, u16) {
+    let offset = match *piece {
+        NoPiece => 0,
+        Blue => 1,
+        Black => 2,
+        Orange => 3,
+    };
+
+    (offset * consts::PIECE_DIMENSIONS.0, 280)
+
+}
 
 #[derive(Debug)]
 pub struct MouseState {

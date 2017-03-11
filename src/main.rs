@@ -6,6 +6,7 @@ mod game;
 mod platform;
 mod axial_hex;
 mod consts;
+mod common;
 
 fn main() {
     game::go();
