@@ -3,7 +3,6 @@ extern crate sdl2;
 
 use self::rand::{Rng, SeedableRng, StdRng, Rand};
 use sdl2_platform::SDL2_Platform as Platform;
-use sdl2_platform::Event;
 use axial_hex;
 use consts;
 
@@ -12,6 +11,8 @@ use common::GRID_OFFSET;
 use common::PieceState;
 use common::PieceState::*;
 
+use platform::Event;
+use platform::Platform as PlatformTrait;
 
 static mut RNG: Option<StdRng> = None;
 use std;

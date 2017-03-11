@@ -2,7 +2,7 @@
 extern crate sdl2;
 
 use sdl2::pixels::Color;
-use sdl2::event::Event as PlatformEvent;
+use sdl2::event::Event as SDL2_Event;
 use sdl2::render::Renderer;
 use sdl2::EventPump;
 use sdl2::rect::Rect;
@@ -18,6 +18,9 @@ use consts;
 use common;
 use common::PieceState;
 use common::PieceState::*;
+
+use platform::Platform;
+use platform::Event;
 
 pub struct SDL2_Platform<'a> {
     pub renderer: Renderer<'a>,
@@ -55,8 +58,8 @@ fn color_from_u32(bits: u32) -> Color {
     Color::RGBA(red!(bits), green!(bits), blue!(bits), alpha!(bits))
 }
 
-impl<'a> SDL2_Platform<'a> {
-    pub fn new() -> Self {
+impl<'a> Platform for SDL2_Platform<'a> {
+    fn new() -> Self {
         let sdl_context = sdl2::init().unwrap();
         let video_subsystem = sdl_context.video().unwrap();
 
@@ -107,12 +110,90 @@ impl<'a> SDL2_Platform<'a> {
         }
     }
 
-    pub fn flip_frame(&mut self) {
+    fn flip_frame(&mut self) {
         self.renderer.present();
         self.renderer.set_draw_color(Color::RGB(250, 224, 55));
         self.spritesheet.set_color_mod(255, 255, 255);
     }
 
+    fn draw_hexagon(&mut self, (grid_x, grid_y): (i16, i16), tile_type: u16, colour: u32) {
+        let (x, y) = add(axial_hex::axial_to_pixel_pointy(common::SIDE_LENGTH,
+                                                          (grid_x as i16, grid_y as i16)),
+                         unsafe { common::GRID_OFFSET });
+
+
+        let (u, v) = (tile_type / 4, tile_type % 2);
+        let (w, h) = self.hex_dimensions;
+        let source_rect = rect!(u * w as u16, v * h as u16, w, h);
+        let mut dest_rect = rect!(0,
+                                  0,
+                                  axial_hex::short_diameter(common::SIDE_LENGTH),
+                                  axial_hex::long_diameter(common::SIDE_LENGTH));
+        dest_rect.center_on(Point::new(x as i32, (self.window_height - y) as i32));
+
+        if alpha!(colour) == 0 {
+            self.spritesheet.set_color_mod(255, 255, 255);
+        } else {
+            self.spritesheet.set_color_mod(red!(colour), green!(colour), blue!(colour))
+        }
+
+        self.renderer
+            .copy(&self.spritesheet, Some(source_rect), Some(dest_rect))
+            .unwrap();
+    }
+
+    fn draw_piece(&mut self, (grid_x, grid_y): (i16, i16), piece_state: &PieceState) {
+        let (x, y) = add(axial_hex::axial_to_pixel_pointy(common::SIDE_LENGTH,
+                                                          (grid_x as i16, grid_y as i16)),
+                         unsafe { common::GRID_OFFSET });
+        let (u, v) = piece_uv(&piece_state);
+        let (w, h) = consts::PIECE_DIMENSIONS;
+        let source_rect = rect!(u, v, w, h);
+        let mut dest_rect =
+            rect!(0,
+                  0,
+                  (axial_hex::short_diameter(common::SIDE_LENGTH) as f32 *
+                   (w as f32 / axial_hex::short_diameter(34) as f32)) as u16,
+                  (axial_hex::long_diameter(common::SIDE_LENGTH) as f32 *
+                   (h as f32 / axial_hex::long_diameter(34) as f32)) as u16);
+
+        dest_rect.center_on(Point::new(x as i32, (self.window_height - y) as i32));
+
+        self.renderer
+            .copy(&self.spritesheet, Some(source_rect), Some(dest_rect))
+            .unwrap();
+    }
+
+    fn get_events(&mut self) -> Vec<Event> {
+        let mut result = Vec::new();
+
+        for event in self.event_pump.poll_iter() {
+            match event {
+                SDL2_Event::Quit { .. } |
+                SDL2_Event::KeyDown
+                { /*keycode: Some(Keycode::Escape),*/
+                     .. } => {result.push(Event::Quit)},
+                SDL2_Event::MouseButtonUp{ x, y, .. } =>
+                    {
+                        let (ax, ay)  =get_axial (x as i16, self.window_height - y as i16);
+                        result.push(
+                        Event::MouseUp{ x: ax, y:ay  });}
+
+                SDL2_Event::MouseMotion{ x, y, .. } =>
+                    {
+                        let (ax, ay)  = get_axial (x as i16, self.window_height - y as i16);
+                        result.push(
+                        Event::MouseMove{ x: ax, y:ay  });}
+                _ => {}
+                // e => {println!("{:?}", e);}
+            }
+        }
+
+        result
+    }
+}
+
+impl<'a> SDL2_Platform<'a> {
     pub fn render_text(&mut self, text: &str) {
         // Load a font
         let ttf_context = sdl2::ttf::init().unwrap();
@@ -143,82 +224,6 @@ impl<'a> SDL2_Platform<'a> {
             .unwrap();
 
         r.set_draw_color(old_colour);
-    }
-
-    pub fn draw_hexagon(&mut self, (grid_x, grid_y): (i16, i16), tile_type: u16, colour: u32) {
-        let (x, y) = add(axial_hex::axial_to_pixel_pointy(common::SIDE_LENGTH,
-                                                          (grid_x as i16, grid_y as i16)),
-                         unsafe { common::GRID_OFFSET });
-
-
-        let (u, v) = (tile_type / 4, tile_type % 2);
-        let (w, h) = self.hex_dimensions;
-        let source_rect = rect!(u * w as u16, v * h as u16, w, h);
-        let mut dest_rect = rect!(0,
-                                  0,
-                                  axial_hex::short_diameter(common::SIDE_LENGTH),
-                                  axial_hex::long_diameter(common::SIDE_LENGTH));
-        dest_rect.center_on(Point::new(x as i32, (self.window_height - y) as i32));
-
-        if alpha!(colour) == 0 {
-            self.spritesheet.set_color_mod(255, 255, 255);
-        } else {
-            self.spritesheet.set_color_mod(red!(colour), green!(colour), blue!(colour))
-        }
-
-        self.renderer
-            .copy(&self.spritesheet, Some(source_rect), Some(dest_rect))
-            .unwrap();
-    }
-
-    pub fn draw_piece(&mut self, (grid_x, grid_y): (i16, i16), piece_state: &PieceState) {
-        let (x, y) = add(axial_hex::axial_to_pixel_pointy(common::SIDE_LENGTH,
-                                                          (grid_x as i16, grid_y as i16)),
-                         unsafe { common::GRID_OFFSET });
-        let (u, v) = piece_uv(&piece_state);
-        let (w, h) = consts::PIECE_DIMENSIONS;
-        let source_rect = rect!(u, v, w, h);
-        let mut dest_rect =
-            rect!(0,
-                  0,
-                  (axial_hex::short_diameter(common::SIDE_LENGTH) as f32 *
-                   (w as f32 / axial_hex::short_diameter(34) as f32)) as u16,
-                  (axial_hex::long_diameter(common::SIDE_LENGTH) as f32 *
-                   (h as f32 / axial_hex::long_diameter(34) as f32)) as u16);
-
-        dest_rect.center_on(Point::new(x as i32, (self.window_height - y) as i32));
-
-        self.renderer
-            .copy(&self.spritesheet, Some(source_rect), Some(dest_rect))
-            .unwrap();
-    }
-
-    pub fn get_events(&mut self) -> Vec<Event> {
-        let mut result = Vec::new();
-
-        for event in self.event_pump.poll_iter() {
-            match event {
-                PlatformEvent::Quit { .. } |
-                PlatformEvent::KeyDown
-                { /*keycode: Some(Keycode::Escape),*/
-                     .. } => {result.push(Quit)},
-                PlatformEvent::MouseButtonUp{ x, y, .. } =>
-                    {
-                        let (ax, ay)  =get_axial (x as i16, self.window_height - y as i16);
-                        result.push(
-                        Event::MouseUp{ x: ax, y:ay  });}
-
-                PlatformEvent::MouseMotion{ x, y, .. } =>
-                    {
-                        let (ax, ay)  = get_axial (x as i16, self.window_height - y as i16);
-                        result.push(
-                        Event::MouseMove{ x: ax, y:ay  });}
-                _ => {}
-                // e => {println!("{:?}", e);}
-            }
-        }
-
-        result
     }
 
     pub fn render_to_buffer(&mut self, render_commands: &Fn(&mut [u8], usize)) {
@@ -288,13 +293,3 @@ pub struct MouseState {
     pub middle: bool,
     pub right: bool,
 }
-
-
-
-#[derive(Debug)]
-pub enum Event {
-    Quit,
-    MouseUp { x: i16, y: i16 },
-    MouseMove { x: i16, y: i16 },
-}
-use self::Event::*;
