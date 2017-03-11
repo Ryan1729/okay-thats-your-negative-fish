@@ -1,3 +1,6 @@
+#![allow(dead_code)]
+//not using pointy right now, but might later.
+
 //see http://www.redblobgames.com/grids/hexagons for a description of the axial coordinate system
 
 const SQRT_3: f32 = 1.7320508075688772935274;

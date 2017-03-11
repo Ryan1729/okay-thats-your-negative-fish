@@ -16,7 +16,7 @@ use common::PieceState::*;
 static mut RNG: Option<StdRng> = None;
 use std;
 
-pub unsafe fn go() {
+pub fn go() {
     let mut platform = Platform::new();
 
     let mut rng;
@@ -45,10 +45,10 @@ pub unsafe fn go() {
 
     if args.len() >= 3 {
         match (args[1].parse(), args[2].parse()) {
-            (Ok(x), Ok(y)) => {
+            (Ok(x), Ok(y)) => unsafe {
                 GRID_OFFSET = (x, y);
                 println!("set GRID_OFFSET to {:?}", GRID_OFFSET);
-            }
+            },
             _ => {
                 println!("could not parse GRID_OFFSET.");
                 println!("recieved {:?}", args);

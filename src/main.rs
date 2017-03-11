@@ -9,5 +9,5 @@ mod consts;
 mod common;
 
 fn main() {
-    unsafe { game::go() };
+    game::go();
 }

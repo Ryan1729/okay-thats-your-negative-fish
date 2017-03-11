@@ -239,7 +239,7 @@ impl<'a> Platform<'a> {
             .unwrap();
     }
 
-    pub fn mouse_state(&self) -> MouseState {
+    pub fn _mouse_state(&self) -> MouseState {
         let platform_mouse_state = self.event_pump.mouse_state();
 
         MouseState {
@@ -279,6 +279,7 @@ fn piece_uv(piece: &PieceState) -> (u16, u16) {
 
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct MouseState {
     pub x: i32,
