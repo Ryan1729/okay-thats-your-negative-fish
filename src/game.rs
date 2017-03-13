@@ -2,6 +2,7 @@ extern crate rand;
 extern crate sdl2;
 
 use self::rand::{Rng, SeedableRng, StdRng, Rand};
+use sdl2_platform;
 use sdl2_platform::SDL2_Platform as Platform;
 use axial_hex;
 use consts;
@@ -18,7 +19,7 @@ static mut RNG: Option<StdRng> = None;
 use std;
 
 pub fn go() {
-    let mut platform = Platform::new();
+    let mut platform = sdl2_platform::new();
 
     let mut rng;
     unsafe {

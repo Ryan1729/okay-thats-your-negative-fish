@@ -1,8 +1,6 @@
 use common::PieceState;
 
 pub trait Platform {
-    fn new() -> Self;
-
     fn flip_frame(&mut self);
 
     fn draw_hexagon(&mut self, (i16, i16), u16, u32);

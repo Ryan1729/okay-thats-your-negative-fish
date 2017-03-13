@@ -58,59 +58,61 @@ fn color_from_u32(bits: u32) -> Color {
     Color::RGBA(red!(bits), green!(bits), blue!(bits), alpha!(bits))
 }
 
-impl<'a> Platform for SDL2_Platform<'a> {
-    fn new() -> Self {
-        let sdl_context = sdl2::init().unwrap();
-        let video_subsystem = sdl_context.video().unwrap();
+pub fn new<'a>() -> SDL2_Platform<'a> {
+    let sdl_context = sdl2::init().unwrap();
+    let video_subsystem = sdl_context.video().unwrap();
 
-        let window_width = 800;
-        let window_height = 600;
+    let window_width = 800;
+    let window_height = 600;
 
-        let hex_dimensions = (120, 140);
+    let hex_dimensions = (120, 140);
 
-        let window = video_subsystem.window("rust-sdl2 demo: Video", window_width, window_height)
-            .position_centered()
-            .opengl()
-            .build()
-            .unwrap();
+    let window = video_subsystem.window("rust-sdl2 demo: Video", window_width, window_height)
+        .position_centered()
+        .opengl()
+        .build()
+        .unwrap();
 
-        let mut renderer = window.renderer().accelerated().build().unwrap();
+    let mut renderer = window.renderer().accelerated().build().unwrap();
 
-        renderer.set_draw_color(Color::RGB(250, 224, 55));
-        renderer.clear();
+    renderer.set_draw_color(Color::RGB(127, 127, 127));
+    // renderer.set_draw_color(Color::RGB(250, 224, 55));
+    renderer.clear();
 
-        let spritesheet = renderer.load_texture(Path::new("assets/hexagon-3to3.png"))
-            .unwrap();
+    let spritesheet = renderer.load_texture(Path::new("assets/hexagon-3to3.png"))
+        .unwrap();
 
-        let center = Point::new((window_width / 2) as i32, (window_height / 2) as i32);
-        let source_rect = Rect::new(0, 0, hex_dimensions.0, hex_dimensions.1);
-        let mut dest_rect = Rect::new(0, 0, hex_dimensions.0, hex_dimensions.1);
-        dest_rect.center_on(center);
+    let center = Point::new((window_width / 2) as i32, (window_height / 2) as i32);
+    let source_rect = Rect::new(0, 0, hex_dimensions.0, hex_dimensions.1);
+    let mut dest_rect = Rect::new(0, 0, hex_dimensions.0, hex_dimensions.1);
+    dest_rect.center_on(center);
 
-        // // Load a font
-        // let ttf_context = sdl2::ttf::init().unwrap();
-        // let font = ttf_context.load_font("fantasquesansmono-regular-webfont.ttf", 128).unwrap();
+    // // Load a font
+    // let ttf_context = sdl2::ttf::init().unwrap();
+    // let font = ttf_context.load_font("fantasquesansmono-regular-webfont.ttf", 128).unwrap();
 
-        renderer.present();
+    renderer.present();
 
-        let event_pump = sdl_context.event_pump().unwrap();
+    let event_pump = sdl_context.event_pump().unwrap();
 
-        let timer = sdl_context.timer().unwrap();
+    let timer = sdl_context.timer().unwrap();
 
-        SDL2_Platform {
-            renderer: renderer,
-            event_pump: event_pump,
-            window_width: window_width as i16,
-            window_height: window_height as i16,
-            timer: timer,
-            spritesheet: spritesheet,
-            source_rect: source_rect,
-            dest_rect: dest_rect,
-            hex_dimensions: hex_dimensions,
-        }
+    SDL2_Platform {
+        renderer: renderer,
+        event_pump: event_pump,
+        window_width: window_width as i16,
+        window_height: window_height as i16,
+        timer: timer,
+        spritesheet: spritesheet,
+        source_rect: source_rect,
+        dest_rect: dest_rect,
+        hex_dimensions: hex_dimensions,
     }
+}
 
+impl<'a> Platform for SDL2_Platform<'a> {
     fn flip_frame(&mut self) {
+        self.renderer.set_blend_mode(sdl2::render::BlendMode::Add);
         self.renderer.present();
         self.renderer.set_draw_color(Color::RGB(250, 224, 55));
         self.spritesheet.set_color_mod(255, 255, 255);
@@ -149,13 +151,14 @@ impl<'a> Platform for SDL2_Platform<'a> {
         let (u, v) = piece_uv(&piece_state);
         let (w, h) = consts::PIECE_DIMENSIONS;
         let source_rect = rect!(u, v, w, h);
-        let mut dest_rect =
-            rect!(0,
-                  0,
-                  (axial_hex::short_diameter(common::SIDE_LENGTH) as f32 *
-                   (w as f32 / axial_hex::short_diameter(34) as f32)) as u16,
-                  (axial_hex::long_diameter(common::SIDE_LENGTH) as f32 *
-                   (h as f32 / axial_hex::long_diameter(34) as f32)) as u16);
+        let mut dest_rect = rect!(0, 0, w * 2, h * 2);
+        // let mut dest_rect =
+        //     rect!(0,
+        //           0,
+        //           (axial_hex::short_diameter(common::SIDE_LENGTH) as f32 *
+        //            (w as f32 / axial_hex::short_diameter(34) as f32)) as u16,
+        //           (axial_hex::long_diameter(common::SIDE_LENGTH) as f32 *
+        //            (h as f32 / axial_hex::long_diameter(34) as f32)) as u16);
 
         dest_rect.center_on(Point::new(x as i32, (self.window_height - y) as i32));
 
