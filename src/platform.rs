@@ -3,6 +3,8 @@ use common::PieceState;
 pub trait Platform {
     fn flip_frame(&mut self);
 
+    fn draw_background(&mut self);
+
     fn draw_hexagon(&mut self, (i16, i16), u16, u32);
 
     fn draw_piece(&mut self, (i16, i16), &PieceState);

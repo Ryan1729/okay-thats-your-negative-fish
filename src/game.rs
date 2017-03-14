@@ -3,7 +3,7 @@ extern crate sdl2;
 
 use self::rand::{Rng, SeedableRng, StdRng, Rand};
 use sdl2_platform;
-use sdl2_platform::SDL2_Platform as Platform;
+use sdl2_platform::Sdl2Platform as Platform;
 use axial_hex;
 use consts;
 
@@ -73,6 +73,7 @@ pub fn go() {
                 // _ => {}
             };
         }
+        platform.draw_background();
 
         for ((x, y), &(tile_type, ref piece)) in grid.indices() {
             platform.draw_hexagon((x as i16, y as i16),
